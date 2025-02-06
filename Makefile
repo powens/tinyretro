@@ -7,3 +7,7 @@ server-lint:
 server-debug:
 	@echo "Running server debug"
 	cd server && cargo run
+
+.PHONY: client-debug
+client-debug:
+	cd client && pnpm run dev
