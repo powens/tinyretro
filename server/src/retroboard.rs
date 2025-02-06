@@ -11,14 +11,13 @@ pub struct RetroItem {
 
 impl RetroItem {
     fn increment_vote(&mut self) {
-        self.sort_order = self.sort_order + 1;
+        self.vote_count = self.vote_count + 1;
     }
 }
 
 
 #[derive(Serialize, Deserialize)]
 pub struct RetroLane {
-    id: String,
     title: String,
     items: HashMap<String, RetroItem>,
 }
@@ -44,7 +43,6 @@ impl RetroLane {
 
 #[derive(Serialize, Deserialize)]
 pub struct RetroBoard {
-    pub id: String,
     pub title: String,
     pub lanes: HashMap<String, RetroLane>,
 }
@@ -52,10 +50,21 @@ pub struct RetroBoard {
 impl RetroBoard {
     pub fn default() -> Self {
         Self {
-            id: Uuid::new_v4().to_string(),
             title: "New Retro Board".to_string(),
-            lanes: HashMap::new(),
+            lanes: HashMap::from([
+                ("Foo".to_string(), RetroLane{
+                    title: "Foo".to_string(),
+                    items: HashMap::new(),
+                }),
+            ]),
         }
+    }
+
+    pub fn add_lane(&mut self, title: &String) {
+        self.lanes.insert(title.clone(), RetroLane{
+            title: title.clone(),
+            items: HashMap::new(),
+        });
     }
 
     pub fn add_item(&mut self, lane_id: &String, body: &String) {

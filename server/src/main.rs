@@ -6,20 +6,20 @@ use axum::{
         ws::{Message, Utf8Bytes, WebSocket, WebSocketUpgrade},
         State,
     },
-    response::{Html, IntoResponse},
+    response::IntoResponse,
     routing::get,
     Router,
 };
 use futures::{sink::SinkExt, stream::StreamExt};
+use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use tokio::sync::broadcast;
-use serde::{Serialize, Deserialize};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 enum Action {
+    AddLane { title: String },
     AddItem { lane_id: String, body: String },
     RemoveItem { lane_id: String, id: String },
     UpvoteItem { lane_id: String, id: String },
@@ -31,28 +31,32 @@ struct AppState {
 }
 
 impl AppState {
-    fn process_action(mut self, action: Action) -> AppState {
+    fn process_action(&self, action: Action) {
         match action {
+            Action::AddLane { title } => {
+                let mut board = self.board.write().unwrap();
+                board.add_lane(&title);
+            }
             Action::AddItem { lane_id, body } => {
-                let board = self.board.get_mut().unwrap();
+                let mut board = self.board.write().unwrap();
                 board.add_item(&lane_id, &body);
-                self
             }
             Action::RemoveItem { lane_id, id } => {
-                let board = self.board.get_mut().unwrap();
+                let mut board = self.board.write().unwrap();
                 board.remove_item(&lane_id, &id);
-                self
             }
             Action::UpvoteItem { lane_id, id } => {
-                let board = self.board.get_mut().unwrap();
+                let mut board = self.board.write().unwrap();
                 board.upvote_item(&lane_id, &id);
-                self
             }
         }
     }
 }
 
-async fn websocket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+async fn websocket_handler(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
     ws.on_upgrade(|socket| websocket(socket, state))
 }
 
@@ -62,8 +66,11 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     let mut rx = state.tx.subscribe();
 
     tracing::debug!("New client connected");
-
-    sender.send(Message::text("Welcome to the retro board!")).await.unwrap();
+    let board = {
+        let board = state.board.read().unwrap();
+        serde_json::to_string(&*board).unwrap()
+    };
+    sender.send(Message::text(board)).await.unwrap();
 
     // Spawn the first task that will receive broadcast messages and send messages over the websocket to our client
     let mut send_task = tokio::spawn(async move {
@@ -81,7 +88,29 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     // and sends them to all broadcast subscribers
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
-            let _ = tx.send(text.to_string());
+            let action_result: Result<Action, serde_json::Error> = serde_json::from_str(&text);
+            let action = match action_result {
+                Ok(action) => action,
+                Err(e) => {
+                    tracing::error!("Failed to parse action: {:?}", e);
+                    continue;
+                }
+            };
+
+            let board = {
+                state.process_action(action);
+                let board = state.board.read().unwrap();
+                serde_json::to_string(&*board).unwrap()
+            };
+
+            let broadcast_result = tx.send(board);
+            match broadcast_result {
+                Ok(_) => (),
+                Err(e) => {
+                    tracing::error!("Failed to broadcast message: {:?}", e);
+                    break;
+                }
+            }
         }
     });
 
@@ -99,7 +128,7 @@ async fn main() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| format!("{}=trace", env!("CARGO_CRATE_NAME")).into()),
+                .unwrap_or_else(|_| format!("{}=trace", env!("CARGO_CRATE_NAME")).into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -117,8 +146,8 @@ async fn main() {
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     tracing::debug!("Listening on: {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
