@@ -3,7 +3,7 @@ use crate::retroboard::RetroBoard;
 
 use axum::{
     extract::{
-        ws::{Message, Utf8Bytes, WebSocket, WebSocketUpgrade},
+        ws::{Message, WebSocket, WebSocketUpgrade},
         State,
     },
     response::IntoResponse,
@@ -34,20 +34,28 @@ impl AppState {
     fn process_action(&self, action: Action) {
         match action {
             Action::AddLane { title } => {
+                println!("Adding lane: {}", title);
                 let mut board = self.board.write().unwrap();
                 board.add_lane(&title);
+                board.save_to_file("./retroboard.json");
             }
             Action::AddItem { lane_id, body } => {
+                println!("Adding item to lane {}: {}", lane_id, body);
                 let mut board = self.board.write().unwrap();
                 board.add_item(&lane_id, &body);
+                board.save_to_file("./retroboard.json");
             }
             Action::RemoveItem { lane_id, id } => {
+                println!("Removing item from lane {}: {}", lane_id, id);
                 let mut board = self.board.write().unwrap();
                 board.remove_item(&lane_id, &id);
+                board.save_to_file("./retroboard.json");
             }
             Action::UpvoteItem { lane_id, id } => {
+                println!("Upvoting item in lane {}: {}", lane_id, id);
                 let mut board = self.board.write().unwrap();
                 board.upvote_item(&lane_id, &id);
+                board.save_to_file("./retroboard.json");
             }
         }
     }
@@ -134,7 +142,7 @@ async fn main() {
         .init();
 
     // Setup app state
-    let board = RetroBoard::default();
+    let board = RetroBoard::load_from_file("./retroboard.json");
     let (tx, _rx) = broadcast::channel(100);
     let app_state = Arc::new(AppState {
         board: RwLock::new(board),
@@ -145,7 +153,7 @@ async fn main() {
         .route("/ws", get(websocket_handler))
         .with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .unwrap();
 
