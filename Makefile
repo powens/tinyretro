@@ -9,5 +9,9 @@ server-debug:
 	cd server && cargo run
 
 .PHONY: client-debug
-client-debug:
+client-debug:	
 	cd client && pnpm run dev
+
+.PHONY: client-lint
+client-lint:
+	cd client && pnpm run lint

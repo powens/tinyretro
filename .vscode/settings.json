@@ -1,5 +1,6 @@
 {
-    "rust-analyzer.linkedProjects": [
-        "${workspaceFolder}/server/Cargo.toml"
-    ]
+  "rust-analyzer.linkedProjects": ["${workspaceFolder}/server/Cargo.toml"],
+  "[svelte]": {
+    "editor.defaultFormatter": "svelte.svelte-vscode"
+  }
 }
