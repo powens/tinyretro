@@ -2,7 +2,9 @@
 
 A small sprint retro application I made to learn Rust and svelte
 
-![[screenshot.png]]
+![screenshot](screenshot.png)
+
+This app uses Rust on the backend, with a JS frontend with SvelteKit with server-side rendering turned off.
 
 ## To debug
 
