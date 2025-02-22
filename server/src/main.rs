@@ -34,25 +34,25 @@ impl AppState {
     fn process_action(&self, action: Action) {
         match action {
             Action::AddLane { title } => {
-                println!("Adding lane: {}", title);
+                tracing::debug!("Adding lane: {}", title);
                 let mut board = self.board.write().unwrap();
                 board.add_lane(&title);
                 board.save_to_file("./retroboard.json");
             }
             Action::AddItem { lane_id, body } => {
-                println!("Adding item to lane {}: {}", lane_id, body);
+                tracing::debug!("Adding item to lane {}: {}", lane_id, body);
                 let mut board = self.board.write().unwrap();
                 board.add_item(&lane_id, &body);
                 board.save_to_file("./retroboard.json");
             }
             Action::RemoveItem { lane_id, id } => {
-                println!("Removing item from lane {}: {}", lane_id, id);
+                tracing::debug!("Removing item from lane {}: {}", lane_id, id);
                 let mut board = self.board.write().unwrap();
                 board.remove_item(&lane_id, &id);
                 board.save_to_file("./retroboard.json");
             }
             Action::UpvoteItem { lane_id, id } => {
-                println!("Upvoting item in lane {}: {}", lane_id, id);
+                tracing::debug!("Upvoting item in lane {}: {}", lane_id, id);
                 let mut board = self.board.write().unwrap();
                 board.upvote_item(&lane_id, &id);
                 board.save_to_file("./retroboard.json");
