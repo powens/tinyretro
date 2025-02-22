@@ -12,7 +12,7 @@ pub struct RetroItem {
 
 impl RetroItem {
     fn increment_vote(&mut self) {
-        self.vote_count = self.vote_count + 1;
+        self.vote_count += 1;
     }
 }
 
@@ -113,7 +113,7 @@ impl RetroBoard {
 
     pub fn load_from_file(path: &str) -> Self {
         let exists = std::path::Path::new(path).exists();
-        if exists == true {
+        if exists {
             let file = match File::open(path) {
                 Ok(file) => file,
                 Err(e) => {
@@ -122,15 +122,15 @@ impl RetroBoard {
                 },
             };
             match serde_json::from_reader(file) {
-                Ok(board) => return board,
+                Ok(board) => board,
                 Err(e) => {
                     tracing::error!("Error reading file, returning default RetroBoard: {:?}", e);
-                    return Self::default();
+                    Self::default()
                 },
-            };
+            }
         }
         else {
-            return Self::default();
+            Self::default()
         }
     }
 
