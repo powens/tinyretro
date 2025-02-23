@@ -20,7 +20,7 @@
         gap: 1rem;
     }
     .lane {
-        border: 1px solid;
+        /* border: 1px solid; */
         padding: 1rem;
     }
 </style>

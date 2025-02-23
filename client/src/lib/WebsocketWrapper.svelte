@@ -17,7 +17,7 @@
     // const boardState = writable<Board|undefined>(undefined);
 
     let boardState = $state({}) as Board;
-    let { children } = $props();
+    // let { children } = $props();
 
     let socket = $state<WebSocket>();
     

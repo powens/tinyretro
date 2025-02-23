@@ -1,7 +1,4 @@
 <script lang="ts">
-  import type { Board } from "$lib/BoardState.svelte";
-  import RetroBoard from "$lib/RetroBoard.svelte";
-  import RetroItem from "$lib/RetroItem.svelte";
   import WebsocketWrapper from "../lib/WebsocketWrapper.svelte";
   // import { USE_MOCKED_DATA } from "$env/static/private";
 

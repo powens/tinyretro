@@ -2,7 +2,7 @@
   import { ThumbsUp, Check } from "lucide-svelte";
   import { Button } from "kampsy-ui";
   import { getContext } from "svelte";
-  import type { ActionUpvoteItem, AllActions, SendActionFunc } from "./BoardState.svelte";
+  import type { ActionUpvoteItem, SendActionFunc } from "./BoardState.svelte";
   let { body, vote_count, theme, laneId, id }: { body: string; vote_count: number, theme: string, laneId: string, id: string } = $props();
 
   let hasVoted = $state(false);

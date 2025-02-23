@@ -26,6 +26,4 @@
   .title {
     font-size: 2rem;
   }
-  .items {
-  }
 </style>
