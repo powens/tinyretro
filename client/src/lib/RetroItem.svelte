@@ -26,13 +26,13 @@
           hasVoted = false;
         }, 5000);
       }}
-      prefix={hasVoted ? Check : ThumbsUp}
+      
     >
-      <!-- {#if hasVoted}
+      {#if hasVoted}
         <Check class="icon" />
       {:else}
         <ThumbsUp class="icon" />
-      {/if} -->
+      {/if}
       {vote_count}
     </Button>
   </div>
