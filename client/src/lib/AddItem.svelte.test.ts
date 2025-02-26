@@ -4,6 +4,7 @@ import AddItem from "./AddItem.svelte";
 
 // Mock the lucide-svelte icons so they don't break in Node
 vi.mock("lucide-svelte", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function MockIcon(_options: unknown) {
     return {
       $$prop_def: {},

@@ -5,6 +5,7 @@ import RetroLane from "./RetroLane.svelte";
 
 // Mock RetroItem so it doesn't attempt to render icons in Node
 vi.mock("./RetroItem.svelte", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function MockRetroItem(_options: unknown) {
     return {
       $$prop_def: {},
@@ -18,6 +19,7 @@ vi.mock("./RetroItem.svelte", () => {
 });
 
 vi.mock("./AddItem.svelte", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function MockAddItem(_options: unknown) {
       return {
         $$prop_def: {},

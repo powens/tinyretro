@@ -23,7 +23,8 @@ vi.mock("lucide-svelte", () => {
 });
 
 test("renders the retro item body text", () => {
-  const fakeSendAction = () => (_: Event) => {};
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const fakeSendAction = () => (_event: Event) => {};
 
   render(RetroItem, {
     context: new Map().set("sendAction", fakeSendAction),
