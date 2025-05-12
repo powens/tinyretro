@@ -42,7 +42,7 @@
 	"dependencies": {
 		"@tailwindcss/postcss": "^4.1.4",
 		"@tailwindcss/vite": "^4.1.4",
-		"lucide-svelte": "^0.475.0",
+		"lucide-svelte": "^0.510.0",
 		"tailwindcss": "^4.1.4"
 	}
 }
