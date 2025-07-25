@@ -2,9 +2,17 @@ import { render, screen, fireEvent } from "@testing-library/svelte";
 import { expect, test, vi } from "vitest";
 import RetroItem from "./RetroItem.svelte";
 
+// Mock kampsy-ui Button component
+vi.mock("kampsy-ui", async () => {
+  const { default: MockButton } = await import("./__mocks__/Button.svelte");
+  return {
+    Button: MockButton,
+  };
+});
+
 // Why the hell do I need to mock an icon component?
 vi.mock("lucide-svelte", () => {
-  // Define a minimal Svelte component “class”
+  // Define a minimal Svelte component "class"
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function MockSvelteComponent(_options: unknown) {
     // Return the minimal shape a Svelte component instance needs

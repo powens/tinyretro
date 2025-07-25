@@ -2,6 +2,17 @@ import { render, screen, fireEvent } from "@testing-library/svelte";
 import { test, expect, vi } from "vitest";
 import AddItem from "./AddItem.svelte";
 
+// Mock kampsy-ui components
+vi.mock("kampsy-ui", async () => {
+  const { default: MockButton } = await import("./__mocks__/Button.svelte");
+  const { default: MockTextarea } = await import("./__mocks__/Textarea.svelte");
+
+  return {
+    Button: MockButton,
+    Textarea: MockTextarea,
+  };
+});
+
 // Mock the lucide-svelte icons so they don't break in Node
 vi.mock("lucide-svelte", () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +50,7 @@ test("clicking 'Add item' displays the form", async () => {
   const addItemButton = screen.getByText("Add item");
   await fireEvent.click(addItemButton);
 
-//   expect(screen.queryByText("Add item")).not.toBeInTheDocument();
+  //   expect(screen.queryByText("Add item")).not.toBeInTheDocument();
   expect(screen.getByText("Cancel")).toBeInTheDocument();
   expect(screen.getByText("Submit")).toBeInTheDocument();
 });
