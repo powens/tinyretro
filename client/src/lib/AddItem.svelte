@@ -30,7 +30,7 @@
           const action: ActionAddItem = {
             type: "AddItem",
             lane_id: laneId,
-            body: "test",
+            body: body,
           };
           sendAction()(action);
           isAdding = false;
