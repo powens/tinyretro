@@ -2,29 +2,17 @@
   import { ThumbsUp, Check } from "lucide-svelte";
   import { Button } from "kampsy-ui";
   import { getContext } from "svelte";
-  import type {
-    ActionUpvoteItem,
-    ActionMoveItem,
-    ActionReorderItem,
-    SendActionFunc,
-  } from "./BoardState.svelte";
-  let {
-    body,
-    vote_count,
-    theme,
-    laneId,
-    id,
-  }: {
-    body: string;
-    vote_count: number;
-    theme: string;
-    laneId: string;
-    id: string;
-  } = $props();
+  import type { ActionUpvoteItem, SendActionFunc } from "./BoardState.svelte";
 
-  let hasVoted = $state(false);
-  let isDragging = $state(false);
-  let sendAction = getContext<() => SendActionFunc>("sendAction");
+  export let body: string;
+  export let vote_count: number;
+  export let theme: string;
+  export let laneId: string;
+  export let id: string;
+
+  let hasVoted = false;
+  let isDragging = false;
+  const sendAction = getContext<SendActionFunc>("sendAction");
 
   // HTML5 Drag and Drop handlers
   function handleDragStart(event: DragEvent) {
@@ -66,13 +54,13 @@
     <Button
       class="upvote"
       type="secondary"
-      onclick={() => {
+      on:click={() => {
         const action: ActionUpvoteItem = {
           type: "UpvoteItem",
           lane_id: laneId,
           id: id,
         };
-        sendAction()(action);
+        sendAction(action);
 
         hasVoted = true;
         setTimeout(() => {
