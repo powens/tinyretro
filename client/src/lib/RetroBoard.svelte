@@ -6,21 +6,21 @@
 </script>
 
 <div class="board">
-  {#each Object.entries(boardState.lanes) as [laneId, lane]}
-  <div class="lane">
-        <RetroLane laneId={laneId} lane={lane} />
+  {#each Object.entries(boardState.lanes) as [laneId, lane] (laneId)}
+    <div class="lane">
+      <RetroLane {laneId} {lane} />
     </div>
-    {/each}
+  {/each}
 </div>
 
 <style>
-    .board {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-    }
-    .lane {
-        /* border: 1px solid; */
-        padding: 1rem;
-    }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .lane {
+    /* border: 1px solid; */
+    padding: 1rem;
+  }
 </style>

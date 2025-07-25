@@ -8,7 +8,7 @@
 <div>
   <h3 class="title">{lane.title}</h3>
   <div>
-    {#each Object.entries(lane.items) as [itemId, item]}
+    {#each Object.entries(lane.items) as [itemId, item] (itemId)}
       <RetroItem
         body={item.body}
         vote_count={item.vote_count}
