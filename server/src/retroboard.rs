@@ -193,14 +193,21 @@ impl RetroBoard {
 
         // Remove the item from the source lane
         let item = {
-            let from_lane = self.lanes.get_mut(from_lane_id).unwrap();
-            from_lane.items.remove(item_id)
+            if let Some(from_lane) = self.lanes.get_mut(from_lane_id) {
+                from_lane.items.remove(item_id)
+            } else {
+                tracing::error!("Lane with ID '{}' does not exist", from_lane_id);
+                return None;
+            }
         };
 
         // Add the item to the destination lane if it was found
         if let Some(item) = item {
-            let to_lane = self.lanes.get_mut(to_lane_id).unwrap();
-            to_lane.items.insert(item_id.to_string(), item);
+            if let Some(to_lane) = self.lanes.get_mut(to_lane_id) {
+                to_lane.items.insert(item_id.to_string(), item);
+            } else {
+                tracing::error!("Lane with ID '{}' does not exist", to_lane_id);
+            }
         }
     }
 
