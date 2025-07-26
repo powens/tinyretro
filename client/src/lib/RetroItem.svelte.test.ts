@@ -31,8 +31,7 @@ vi.mock("lucide-svelte", () => {
 });
 
 test("renders the retro item body text", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const fakeSendAction = () => (_event: Event) => {};
+  const fakeSendAction = vi.fn();
 
   render(RetroItem, {
     context: new Map().set("sendAction", fakeSendAction),
@@ -50,7 +49,7 @@ test("renders the retro item body text", () => {
 });
 
 test("calls sendAction on upvote click", async () => {
-  const mockSendAction = vi.fn().mockImplementation(() => vi.fn());
+  const mockSendAction = vi.fn();
   render(RetroItem, {
     context: new Map().set("sendAction", mockSendAction),
     props: {
@@ -62,12 +61,16 @@ test("calls sendAction on upvote click", async () => {
     },
   });
 
-  const button = screen.getByRole("button");
-  await fireEvent.click(button);
+  // Find the upvote button specifically (it's the actual button element, not the div with role="button")
+  const buttons = screen.getAllByRole("button");
+  const upvoteButton = buttons.find((button) => button.tagName === "BUTTON");
+  expect(upvoteButton).toBeDefined();
+
+  await fireEvent.click(upvoteButton!);
 
   expect(mockSendAction).toHaveBeenCalledTimes(1);
-  // Check inner returned function call
-  expect(mockSendAction.mock.results[0].value).toHaveBeenCalledWith({
+  // Check the action that was called
+  expect(mockSendAction).toHaveBeenCalledWith({
     type: "UpvoteItem",
     lane_id: "laneX",
     id: "itemY",
@@ -75,7 +78,7 @@ test("calls sendAction on upvote click", async () => {
 });
 
 test("toggles icon after voting", async () => {
-  const fakeSendAction = () => () => {};
+  const fakeSendAction = vi.fn();
   render(RetroItem, {
     context: new Map().set("sendAction", fakeSendAction),
     props: {
@@ -87,12 +90,12 @@ test("toggles icon after voting", async () => {
     },
   });
 
-  // Initially should show ThumbsUp
-  expect(screen.queryByText(/thumbsUp/i)).not.toBeInTheDocument();
-  // The actual icon is mocked, so you can check for the containing element or rely on alt text if used.
+  // Find the upvote button specifically (it's the actual button element, not the div with role="button")
+  const buttons = screen.getAllByRole("button");
+  const upvoteButton = buttons.find((button) => button.tagName === "BUTTON");
+  expect(upvoteButton).toBeDefined();
 
-  const button = screen.getByRole("button");
-  await fireEvent.click(button);
+  await fireEvent.click(upvoteButton!);
 
   // After click, it should switch to Check icon
   // Because icons are mocked, verifying "Check" vs. "ThumbsUp" precisely is tricky,

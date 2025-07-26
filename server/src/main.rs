@@ -19,10 +19,31 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 enum Action {
-    AddLane { title: String },
-    AddItem { lane_id: String, body: String },
-    RemoveItem { lane_id: String, id: String },
-    UpvoteItem { lane_id: String, id: String },
+    AddLane {
+        title: String,
+    },
+    AddItem {
+        lane_id: String,
+        body: String,
+    },
+    RemoveItem {
+        lane_id: String,
+        id: String,
+    },
+    UpvoteItem {
+        lane_id: String,
+        id: String,
+    },
+    MoveItem {
+        from_lane_id: String,
+        to_lane_id: String,
+        item_id: String,
+    },
+    ReorderItem {
+        lane_id: String,
+        item_id: String,
+        new_position: u64,
+    },
 }
 
 struct AppState {
@@ -55,6 +76,36 @@ impl AppState {
                 tracing::debug!("Upvoting item in lane {}: {}", lane_id, id);
                 let mut board = self.board.write().unwrap();
                 board.upvote_item(&lane_id, &id);
+                board.save_to_file("./retroboard.json");
+            }
+            Action::MoveItem {
+                from_lane_id,
+                to_lane_id,
+                item_id,
+            } => {
+                tracing::debug!(
+                    "Moving item {} from lane {} to lane {}",
+                    item_id,
+                    from_lane_id,
+                    to_lane_id
+                );
+                let mut board = self.board.write().unwrap();
+                board.move_item(&from_lane_id, &to_lane_id, &item_id);
+                board.save_to_file("./retroboard.json");
+            }
+            Action::ReorderItem {
+                lane_id,
+                item_id,
+                new_position,
+            } => {
+                tracing::debug!(
+                    "Reordering item {} in lane {} to position {}",
+                    item_id,
+                    lane_id,
+                    new_position
+                );
+                let mut board = self.board.write().unwrap();
+                board.reorder_item(&lane_id, &item_id, new_position);
                 board.save_to_file("./retroboard.json");
             }
         }
@@ -153,9 +204,7 @@ async fn main() {
         .route("/ws", get(websocket_handler))
         .with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
     tracing::debug!("Listening on: {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
