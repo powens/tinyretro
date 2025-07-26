@@ -7,7 +7,7 @@
   const { body, vote_count, theme, laneId, id } = $props();
 
   let hasVoted = $state(false);
-  let isDragging = false;
+  let isDragging = $state(false);
   const sendAction = getContext<SendActionFunc>("sendAction");
 
   // HTML5 Drag and Drop handlers
