@@ -197,7 +197,7 @@ impl RetroBoard {
                 from_lane.items.remove(item_id)
             } else {
                 tracing::error!("Lane with ID '{}' does not exist", from_lane_id);
-                return None;
+                return;
             }
         };
 
