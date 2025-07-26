@@ -229,34 +229,34 @@ impl RetroBoard {
 
         // Get all items and sort by current sort_order
         let mut items: Vec<(String, RetroItem)> = lane.items.drain().collect();
-        tracing::debug!("DEBUG: Found {} items in lane", items.len());
+        tracing::debug!("Found {} items in lane", items.len());
 
         items.sort_by_key(|(_, item)| item.sort_order);
 
         // Find the item to move
         let item_index = items.iter().position(|(id, _)| id == item_id);
-        tracing::debug!("DEBUG: Item index: {:?}", item_index);
+        tracing::debug!("Item index: {:?}", item_index);
 
         if let Some(old_index) = item_index {
             let (item_id, item) = items.remove(old_index);
-            tracing::debug!("DEBUG: Removed item from position {}", old_index);
+            tracing::debug!("Removed item from position {}", old_index);
 
             // Insert at new position (clamped to valid range)
             let new_index = (new_position as usize).min(items.len());
-            tracing::debug!("DEBUG: Inserting at position {}", new_index);
+            tracing::debug!("Inserting at position {}", new_index);
             items.insert(new_index, (item_id, item));
 
             // Reassign sort_order values
             for (i, (_, item)) in items.iter_mut().enumerate() {
                 item.sort_order = i as u64;
-                tracing::debug!("DEBUG: Set item {} sort_order to {}", i, item.sort_order);
+                tracing::debug!("Set item {} sort_order to {}", i, item.sort_order);
             }
 
             // Put items back into the lane
             lane.items = items.into_iter().collect();
-            tracing::debug!("DEBUG: Reordering complete");
+            tracing::debug!("Reordering complete");
         } else {
-            tracing::debug!("DEBUG: Item not found in lane");
+            tracing::debug!("Item not found in lane");
         }
     }
 }
