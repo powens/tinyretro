@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Development overrides
+  traefik:
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+
+  server:
+    environment:
+      - RUST_LOG=debug
+    # Mount source code for development (optional)
+    # volumes:
+    #   - ./server/src:/app/src:ro
+    #   - ./server/Cargo.toml:/app/Cargo.toml:ro
+
+  client:
+    # For development, you might want to use a dev server instead
+    # This can be uncommented and modified as needed
+    # volumes:
+    #   - ./client/src:/app/src:ro
