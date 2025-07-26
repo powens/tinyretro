@@ -81,6 +81,10 @@ test("clicking 'Submit' calls sendAction with expected arguments", async () => {
   // Show the form
   await fireEvent.click(screen.getByText("Add item"));
 
+  // Fill in the textarea
+  const textarea = screen.getByPlaceholderText("Enter item body");
+  await fireEvent.input(textarea, { target: { value: "test" } });
+
   // Click Submit
   await fireEvent.click(screen.getByText("Submit"));
 

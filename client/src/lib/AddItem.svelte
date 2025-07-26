@@ -14,7 +14,7 @@
 {#if isAdding}
   <div>
     <form>
-      <Textarea placeholder="Enter item body" value={body} />
+      <Textarea placeholder="Enter item body" bind:value={body} />
       <Button
         type="secondary"
         prefix={Cross}
