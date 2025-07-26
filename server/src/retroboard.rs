@@ -223,7 +223,7 @@ impl RetroBoard {
             Some(lane) => lane,
             None => {
                 tracing::error!("Lane with ID '{}' not found", lane_id);
-                return Err(format!("Lane with ID '{}' not found", lane_id));
+                return;
             }
         };
 
