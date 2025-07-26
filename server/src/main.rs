@@ -104,10 +104,6 @@ impl AppState {
                     lane_id,
                     new_position
                 );
-                println!(
-                    "DEBUG: Reordering item {} in lane {} to position {}",
-                    item_id, lane_id, new_position
-                );
                 let mut board = self.board.write().unwrap();
                 board.reorder_item(&lane_id, &item_id, new_position);
                 board.save_to_file("./retroboard.json");

@@ -63,9 +63,9 @@ test("calls sendAction on upvote click", async () => {
 
   // Find the upvote button specifically (it's the actual button element, not the div with role="button")
   const buttons = screen.getAllByRole("button");
-  const upvoteButton = buttons.find(button => button.tagName === "BUTTON");
+  const upvoteButton = buttons.find((button) => button.tagName === "BUTTON");
   expect(upvoteButton).toBeDefined();
-  
+
   await fireEvent.click(upvoteButton!);
 
   expect(mockSendAction).toHaveBeenCalledTimes(1);
@@ -92,9 +92,9 @@ test("toggles icon after voting", async () => {
 
   // Find the upvote button specifically (it's the actual button element, not the div with role="button")
   const buttons = screen.getAllByRole("button");
-  const upvoteButton = buttons.find(button => button.tagName === "BUTTON");
+  const upvoteButton = buttons.find((button) => button.tagName === "BUTTON");
   expect(upvoteButton).toBeDefined();
-  
+
   await fireEvent.click(upvoteButton!);
 
   // After click, it should switch to Check icon
