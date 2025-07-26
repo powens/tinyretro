@@ -3,11 +3,23 @@
   import { Button } from "kampsy-ui";
   import { getContext } from "svelte";
   import type { ActionUpvoteItem, SendActionFunc } from "./BoardState.svelte";
-  let { body, vote_count, theme, laneId, id }: { body: string; vote_count: number, theme: string, laneId: string, id: string } = $props();
+
+  let {
+    body,
+    vote_count,
+    theme,
+    laneId,
+    id,
+  }: {
+    body: string;
+    vote_count: number;
+    theme: string;
+    laneId: string;
+    id: string;
+  } = $props();
 
   let hasVoted = $state(false);
   let sendAction = getContext<() => SendActionFunc>("sendAction");
-
 </script>
 
 <div class="item {theme}">
@@ -16,17 +28,19 @@
     <Button
       class="upvote"
       type="secondary"
-      onclick={() => {
-        const action: ActionUpvoteItem = { type: "UpvoteItem", lane_id: laneId, id: id};
+      on:click={() => {
+        const action: ActionUpvoteItem = {
+          type: "UpvoteItem",
+          lane_id: laneId,
+          id: id,
+        };
         sendAction()(action);
-
 
         hasVoted = true;
         setTimeout(() => {
           hasVoted = false;
         }, 5000);
       }}
-      
     >
       {#if hasVoted}
         <Check class="icon" />
