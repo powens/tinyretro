@@ -31,7 +31,7 @@
     event.dataTransfer.effectAllowed = "move";
   }
 
-  function handleDragEnd(event: DragEvent) {
+  function handleDragEnd() {
     console.log("Drag ended for item:", id);
     isDragging = false;
   }

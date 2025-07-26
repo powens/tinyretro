@@ -3,6 +3,7 @@
     Lane,
     ActionMoveItem,
     ActionReorderItem,
+    AllActions,
   } from "./BoardState.svelte";
   import RetroItem from "./RetroItem.svelte";
   import AddItem from "./AddItem.svelte";
@@ -12,7 +13,8 @@
 
   let { laneId, lane }: { laneId: string; lane: Lane } = $props();
 
-  const sendAction = getContext<() => (action: any) => void>("sendAction");
+  const sendAction =
+    getContext<() => (action: AllActions) => void>("sendAction");
 
   let isDragOver = $state(false);
   let dragOverIndex = $state<number | null>(null);
