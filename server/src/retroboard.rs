@@ -213,7 +213,7 @@ impl RetroBoard {
 
     pub fn reorder_item(&mut self, lane_id: &str, item_id: &str, new_position: u64) {
         tracing::debug!(
-            "DEBUG: reorder_item called - lane: {}, item: {}, position: {}",
+            "reorder_item called - lane: {}, item: {}, position: {}",
             lane_id,
             item_id,
             new_position
