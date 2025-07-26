@@ -4,11 +4,7 @@
   import { getContext } from "svelte";
   import type { ActionUpvoteItem, SendActionFunc } from "./BoardState.svelte";
 
-  export let body: string;
-  export let vote_count: number;
-  export let theme: string;
-  export let laneId: string;
-  export let id: string;
+  const { body, vote_count, theme, laneId, id } = $props();
 
   let hasVoted = $state(false);
   let isDragging = false;
