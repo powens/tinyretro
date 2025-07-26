@@ -10,7 +10,7 @@
   export let laneId: string;
   export let id: string;
 
-  let hasVoted = false;
+  let hasVoted = $state(false);
   let isDragging = false;
   const sendAction = getContext<SendActionFunc>("sendAction");
 
