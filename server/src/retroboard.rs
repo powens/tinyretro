@@ -212,7 +212,13 @@ impl RetroBoard {
             new_position
         );
 
-        let lane = self.lanes.get_mut(lane_id).unwrap();
+        let lane = match self.lanes.get_mut(lane_id) {
+            Some(lane) => lane,
+            None => {
+                tracing::error!("Lane with ID '{}' not found", lane_id);
+                return Err(format!("Lane with ID '{}' not found", lane_id));
+            }
+        };
 
         // Get all items and sort by current sort_order
         let mut items: Vec<(String, RetroItem)> = lane.items.drain().collect();
