@@ -22,7 +22,7 @@
     let socket = $state<WebSocket>();
     
     onMount(() => {
-        socket = new WebSocket('ws://localhost:3000/ws');
+        socket = new WebSocket('ws://localhost/ws');
 
         socket.addEventListener('open', () => {
             console.debug('Connected to server');

@@ -23,8 +23,8 @@ server-build-release:
 	@echo "Building server release"
 	cd server && cargo build --release
 
-.PHONY: server-build-docker
-server-build-docker:
+.PHONY: server-docker
+server-docker:
 	cd server && docker build -t tinyretro-server .
 
 .PHONY: client-debug
@@ -43,9 +43,9 @@ client-test:
 client-build:
 	cd client && pnpm run build
 
-.PHONY: client-build-docker
-client-build-docker:
-	cd client && pnpm run build && docker build -t tinyretro-client .
+.PHONY: client-docker
+client-docker:
+	cd client && docker build -t tinyretro-client .
 
 .PHONY: client-install
 client-install:
