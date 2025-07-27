@@ -1,3 +1,6 @@
+.PHONY: prod
+prod: server-docker client-docker
+
 .PHONY: server-lint
 server-lint:
 	@echo "Running server lint"
