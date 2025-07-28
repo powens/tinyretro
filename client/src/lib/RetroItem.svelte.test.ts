@@ -1,6 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/svelte";
-import { expect, test, vi } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/svelte";
+import { expect, test, vi, afterEach } from "vitest";
 import RetroItem from "./RetroItem.svelte";
+
+afterEach(cleanup);
 
 // Mock kampsy-ui Button component
 vi.mock("kampsy-ui", async () => {
@@ -10,12 +12,10 @@ vi.mock("kampsy-ui", async () => {
   };
 });
 
-// Why the hell do I need to mock an icon component?
+// Mock the lucide-svelte icons
 vi.mock("lucide-svelte", () => {
-  // Define a minimal Svelte component "class"
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function MockSvelteComponent(_options: unknown) {
-    // Return the minimal shape a Svelte component instance needs
     return {
       $$prop_def: {},
       $$events_def: {},
@@ -100,4 +100,75 @@ test("toggles icon after voting", async () => {
   // After click, it should switch to Check icon
   // Because icons are mocked, verifying "Check" vs. "ThumbsUp" precisely is tricky,
   // but you can confirm the DOM changes or rely on class checks if needed.
+});
+
+test("applies correct theme class", () => {
+  const fakeSendAction = vi.fn();
+  const { container } = render(RetroItem, {
+    context: new Map().set("sendAction", fakeSendAction),
+    props: {
+      body: "Theme test",
+      vote_count: 0,
+      theme: "action-items",
+      laneId: "theme-lane",
+      id: "theme-item",
+    },
+  });
+
+  const itemDiv = container.querySelector('.item');
+  expect(itemDiv).toHaveClass('action-items');
+});
+
+test("displays drag handle", () => {
+  const fakeSendAction = vi.fn();
+  const { container } = render(RetroItem, {
+    context: new Map().set("sendAction", fakeSendAction),
+    props: {
+      body: "Handle test",
+      vote_count: 0,
+      theme: "went-well",
+      laneId: "handle-lane",
+      id: "handle-item",
+    },
+  });
+
+  const dragHandle = container.querySelector('.drag-handle');
+  expect(dragHandle).toBeInTheDocument();
+  expect(dragHandle).toHaveTextContent('⋮⋮');
+});
+
+test("has correct accessibility attributes", () => {
+  const fakeSendAction = vi.fn();
+  render(RetroItem, {
+    context: new Map().set("sendAction", fakeSendAction),
+    props: {
+      body: "Accessibility test",
+      vote_count: 0,
+      theme: "went-well",
+      laneId: "a11y-lane",
+      id: "a11y-item",
+    },
+  });
+
+  const draggableDiv = screen.getByLabelText("Drag to move item: Accessibility test");
+  expect(draggableDiv).toHaveAttribute("tabindex", "0");
+  expect(draggableDiv).toHaveAttribute("data-item-id", "a11y-item");
+  expect(draggableDiv).toHaveAttribute("data-lane-id", "a11y-lane");
+});
+
+test("is draggable", () => {
+  const fakeSendAction = vi.fn();
+  render(RetroItem, {
+    context: new Map().set("sendAction", fakeSendAction),
+    props: {
+      body: "Draggable test",
+      vote_count: 0,
+      theme: "went-well",
+      laneId: "drag-lane",
+      id: "drag-item",
+    },
+  });
+
+  const draggableDiv = screen.getByLabelText("Drag to move item: Draggable test");
+  expect(draggableDiv).toHaveAttribute("draggable", "true");
 });

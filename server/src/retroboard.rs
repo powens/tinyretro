@@ -5,9 +5,9 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct RetroItem {
-    body: String,
-    vote_count: u64,
-    sort_order: u64,
+    pub body: String,
+    pub vote_count: u64,
+    pub sort_order: u64,
 }
 
 impl RetroItem {
@@ -18,9 +18,9 @@ impl RetroItem {
 
 #[derive(Serialize, Deserialize)]
 pub struct RetroLane {
-    title: String,
-    theme: String,
-    items: HashMap<String, RetroItem>,
+    pub title: String,
+    pub theme: String,
+    pub items: HashMap<String, RetroItem>,
 }
 
 impl RetroLane {
@@ -252,12 +252,13 @@ impl RetroBoard {
                 tracing::debug!("Set item {} sort_order to {}", i, item.sort_order);
             }
 
-            // Put items back into the lane
-            lane.items = items.into_iter().collect();
             tracing::debug!("Reordering complete");
         } else {
             tracing::debug!("Item not found in lane");
         }
+
+        // Always put items back into the lane, whether found or not
+        lane.items = items.into_iter().collect();
     }
 }
 
@@ -265,6 +266,7 @@ impl RetroBoard {
 mod tests {
     use super::*;
     use std::collections::HashMap;
+    use tempfile::tempdir;
 
     #[test]
     fn test_add_item() {
@@ -283,6 +285,29 @@ mod tests {
     }
 
     #[test]
+    fn test_add_multiple_items_sort_order() {
+        let mut lane = RetroLane {
+            title: "Test Lane".to_string(),
+            theme: "Test Theme".to_string(),
+            items: HashMap::new(),
+        };
+
+        lane.add_item("First Item");
+        lane.add_item("Second Item");
+        lane.add_item("Third Item");
+        
+        assert_eq!(lane.items.len(), 3);
+        
+        // Verify sort orders are correct
+        let mut items: Vec<_> = lane.items.values().collect();
+        items.sort_by_key(|item| item.sort_order);
+        
+        assert_eq!(items[0].sort_order, 0);
+        assert_eq!(items[1].sort_order, 1);
+        assert_eq!(items[2].sort_order, 2);
+    }
+
+    #[test]
     fn test_remove_item() {
         let mut lane = RetroLane {
             title: "Test Lane".to_string(),
@@ -293,6 +318,19 @@ mod tests {
         lane.add_item("Test Item");
         let item_id = lane.items.keys().next().unwrap().clone();
         lane.remove_item(&item_id);
+        assert_eq!(lane.items.len(), 0);
+    }
+
+    #[test]
+    fn test_remove_nonexistent_item() {
+        let mut lane = RetroLane {
+            title: "Test Lane".to_string(),
+            theme: "Test Theme".to_string(),
+            items: HashMap::new(),
+        };
+
+        // Try to remove an item that doesn't exist
+        lane.remove_item("nonexistent");
         assert_eq!(lane.items.len(), 0);
     }
 
@@ -312,6 +350,34 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_increment_vote_nonexistent_item() {
+        let mut lane = RetroLane {
+            title: "Test Lane".to_string(),
+            theme: "Test Theme".to_string(),
+            items: HashMap::new(),
+        };
+
+        // This should panic because the item doesn't exist
+        lane.increment_vote("nonexistent");
+    }
+
+    #[test]
+    fn test_retro_item_increment_vote() {
+        let mut item = RetroItem {
+            body: "Test".to_string(),
+            vote_count: 0,
+            sort_order: 0,
+        };
+
+        item.increment_vote();
+        assert_eq!(item.vote_count, 1);
+
+        item.increment_vote();
+        assert_eq!(item.vote_count, 2);
+    }
+
+    #[test]
     fn test_add_lane() {
         let mut board = RetroBoard {
             title: "Test Board".to_string(),
@@ -323,6 +389,19 @@ mod tests {
         let lane = board.lanes.values().next().unwrap();
         assert_eq!(lane.title, "Test Lane");
         assert_eq!(lane.theme, "Test Board");
+        assert_eq!(lane.items.len(), 0);
+    }
+
+    #[test]
+    fn test_add_duplicate_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+        board.add_lane("Test Lane"); // Add same lane again
+        assert_eq!(board.lanes.len(), 1); // Should still be 1
     }
 
     #[test]
@@ -338,6 +417,18 @@ mod tests {
         assert_eq!(lane.items.len(), 1);
         let item = lane.items.values().next().unwrap();
         assert_eq!(item.body, "Test Item");
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_add_item_to_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        // This should panic because the lane doesn't exist
+        board.add_item("Nonexistent Lane", "Test Item");
     }
 
     #[test]
@@ -357,6 +448,18 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_remove_item_from_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        // This should panic because the lane doesn't exist
+        board.remove_item("Nonexistent Lane", "item_id");
+    }
+
+    #[test]
     fn test_upvote_item_in_lane() {
         let mut board = RetroBoard {
             title: "Test Board".to_string(),
@@ -371,6 +474,18 @@ mod tests {
         let lane = board.lanes.get("Test Lane").unwrap();
         let item = lane.items.get(&item_id).unwrap();
         assert_eq!(item.vote_count, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_upvote_item_in_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        // This should panic because the lane doesn't exist
+        board.upvote_item("Nonexistent Lane", "item_id");
     }
 
     #[test]
@@ -395,6 +510,63 @@ mod tests {
         assert_eq!(lane1.items.len(), 0);
         assert_eq!(lane2.items.len(), 1);
         assert!(lane2.items.contains_key(&item_id));
+    }
+
+    #[test]
+    fn test_move_item_same_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 1");
+        board.add_item("Lane 1", "Test Item");
+
+        let lane1 = board.lanes.get("Lane 1").unwrap();
+        let item_id = lane1.items.keys().next().unwrap().clone();
+
+        // Moving to the same lane should do nothing
+        board.move_item("Lane 1", "Lane 1", &item_id);
+
+        let lane1 = board.lanes.get("Lane 1").unwrap();
+        assert_eq!(lane1.items.len(), 1);
+        assert!(lane1.items.contains_key(&item_id));
+    }
+
+    #[test]
+    fn test_move_item_from_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 2");
+
+        // Try to move from nonexistent lane - should do nothing
+        board.move_item("Nonexistent Lane", "Lane 2", "item_id");
+
+        let lane2 = board.lanes.get("Lane 2").unwrap();
+        assert_eq!(lane2.items.len(), 0);
+    }
+
+    #[test]
+    fn test_move_item_to_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 1");
+        board.add_item("Lane 1", "Test Item");
+
+        let lane1 = board.lanes.get("Lane 1").unwrap();
+        let item_id = lane1.items.keys().next().unwrap().clone();
+
+        // Try to move to nonexistent lane - item should be removed from source
+        board.move_item("Lane 1", "Nonexistent Lane", &item_id);
+
+        let lane1 = board.lanes.get("Lane 1").unwrap();
+        assert_eq!(lane1.items.len(), 0);
     }
 
     #[test]
@@ -433,5 +605,135 @@ mod tests {
         assert_eq!(lane.items.get(item3_id).unwrap().sort_order, 0);
         assert_eq!(lane.items.get(item1_id).unwrap().sort_order, 1);
         assert_eq!(lane.items.get(item2_id).unwrap().sort_order, 2);
+    }
+
+    #[test]
+    fn test_reorder_item_in_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        // Try to reorder item in nonexistent lane - should do nothing
+        board.reorder_item("Nonexistent Lane", "item_id", 0);
+        // No panic expected, just graceful handling
+    }
+
+    #[test]
+    fn test_reorder_nonexistent_item() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 1");
+        board.add_item("Lane 1", "Test Item");
+
+        // Try to reorder nonexistent item - should do nothing
+        board.reorder_item("Lane 1", "nonexistent_item", 0);
+
+        let lane = board.lanes.get("Lane 1").unwrap();
+        assert_eq!(lane.items.len(), 1);
+    }
+
+    #[test]
+    fn test_reorder_item_beyond_bounds() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 1");
+        board.add_item("Lane 1", "First item");
+        board.add_item("Lane 1", "Second item");
+
+        let lane = board.lanes.get("Lane 1").unwrap();
+        let item_id = lane.items.keys().next().unwrap().clone();
+
+        // Try to move to position beyond the number of items
+        board.reorder_item("Lane 1", &item_id, 10);
+
+        let lane = board.lanes.get("Lane 1").unwrap();
+        let item = lane.items.get(&item_id).unwrap();
+        // Should be clamped to the end of the list
+        assert_eq!(item.sort_order, 1);
+    }
+
+    #[test]
+    fn test_retroboard_default() {
+        let board = RetroBoard::default();
+        
+        assert_eq!(board.title, "My Retro Board");
+        assert_eq!(board.lanes.len(), 3);
+        
+        assert!(board.lanes.contains_key("went-well"));
+        assert!(board.lanes.contains_key("to-improve"));
+        assert!(board.lanes.contains_key("action-items"));
+        
+        let went_well = board.lanes.get("went-well").unwrap();
+        assert_eq!(went_well.title, "Went Well");
+        assert_eq!(went_well.items.len(), 2);
+        
+        let to_improve = board.lanes.get("to-improve").unwrap();
+        assert_eq!(to_improve.title, "To Improve");
+        assert_eq!(to_improve.items.len(), 2);
+        
+        let action_items = board.lanes.get("action-items").unwrap();
+        assert_eq!(action_items.title, "Action Items");
+        assert_eq!(action_items.items.len(), 2);
+    }
+
+    #[test]
+    fn test_save_and_load_from_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test_board.json");
+        let file_path_str = file_path.to_str().unwrap();
+
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+        board.add_lane("Test Lane");
+        board.add_item("Test Lane", "Test Item");
+
+        // Test save
+        board.save_to_file(file_path_str);
+
+        // Test load
+        let loaded_board = RetroBoard::load_from_file(file_path_str);
+        assert_eq!(loaded_board.title, "Test Board");
+        assert_eq!(loaded_board.lanes.len(), 1);
+        assert!(loaded_board.lanes.contains_key("Test Lane"));
+        
+        let lane = loaded_board.lanes.get("Test Lane").unwrap();
+        assert_eq!(lane.items.len(), 1);
+        
+        let item = lane.items.values().next().unwrap();
+        assert_eq!(item.body, "Test Item");
+    }
+
+    #[test]
+    fn test_load_from_nonexistent_file() {
+        let board = RetroBoard::load_from_file("/nonexistent/path.json");
+        
+        // Should return default board when file doesn't exist
+        assert_eq!(board.title, "My Retro Board");
+        assert_eq!(board.lanes.len(), 3);
+    }
+
+    #[test]
+    fn test_load_from_invalid_json() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("invalid.json");
+        let file_path_str = file_path.to_str().unwrap();
+
+        // Create a file with invalid JSON
+        std::fs::write(file_path_str, "invalid json content").unwrap();
+
+        let board = RetroBoard::load_from_file(file_path_str);
+        
+        // Should return default board when JSON is invalid
+        assert_eq!(board.title, "My Retro Board");
+        assert_eq!(board.lanes.len(), 3);
     }
 }
