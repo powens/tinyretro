@@ -1,3 +1,6 @@
+.PHONY: prod
+prod: server-docker client-docker
+
 .PHONY: server-lint
 server-lint:
 	@echo "Running server lint"
@@ -23,6 +26,10 @@ server-build-release:
 	@echo "Building server release"
 	cd server && cargo build --release
 
+.PHONY: server-docker
+server-docker:
+	cd server && docker build -t tinyretro-server .
+
 .PHONY: client-debug
 client-debug:	
 	cd client && pnpm run dev
@@ -38,6 +45,10 @@ client-test:
 .PHONY: client-build
 client-build:
 	cd client && pnpm run build
+
+.PHONY: client-docker
+client-docker:
+	cd client && docker build -t tinyretro-client .
 
 .PHONY: client-install
 client-install:
