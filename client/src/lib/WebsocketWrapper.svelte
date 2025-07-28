@@ -22,7 +22,14 @@
   let socket = $state<WebSocket>();
 
   onMount(() => {
-    socket = new WebSocket("ws://localhost/ws");
+    const hostProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const hostAddress = window.location.hostname;
+    let hostPort = window.location.port ? `:${window.location.port}` : "";
+    if (import.meta.env.DEBUG) {
+      hostPort = ":3000";
+    }
+
+    socket = new WebSocket(`${hostProtocol}://${hostAddress}${hostPort}/ws`);
 
     socket.addEventListener("open", () => {
       console.debug("Connected to server");
