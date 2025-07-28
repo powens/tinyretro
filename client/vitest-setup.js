@@ -12,6 +12,18 @@ global.navigator = dom.window.navigator;
 global.HTMLElement = dom.window.HTMLElement;
 global.Node = dom.window.Node;
 
+// Mock DragEvent since it's not available in JSDOM
+global.DragEvent = class DragEvent extends Event {
+  constructor(type, eventInitDict) {
+    super(type, eventInitDict);
+    this.dataTransfer = eventInitDict?.dataTransfer || {
+      setData: () => {},
+      getData: () => '',
+      effectAllowed: 'none',
+    };
+  }
+};
+
 // Mock matchMedia
 global.window.matchMedia = global.window.matchMedia || function() {
   return {

@@ -1,4 +1,5 @@
 mod retroboard;
+mod tofile;
 use crate::retroboard::RetroBoard;
 
 use axum::{
@@ -180,6 +181,220 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     }
 
     tracing::debug!("Client disconnected");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json;
+
+    #[test]
+    fn test_action_serialization() {
+        // Test AddLane action
+        let add_lane = Action::AddLane {
+            title: "Test Lane".to_string(),
+        };
+        let json = serde_json::to_string(&add_lane).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::AddLane { title } => assert_eq!(title, "Test Lane"),
+            _ => panic!("Wrong action type"),
+        }
+
+        // Test AddItem action
+        let add_item = Action::AddItem {
+            lane_id: "lane1".to_string(),
+            body: "Test item".to_string(),
+        };
+        let json = serde_json::to_string(&add_item).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::AddItem { lane_id, body } => {
+                assert_eq!(lane_id, "lane1");
+                assert_eq!(body, "Test item");
+            }
+            _ => panic!("Wrong action type"),
+        }
+
+        // Test RemoveItem action
+        let remove_item = Action::RemoveItem {
+            lane_id: "lane1".to_string(),
+            id: "item1".to_string(),
+        };
+        let json = serde_json::to_string(&remove_item).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::RemoveItem { lane_id, id } => {
+                assert_eq!(lane_id, "lane1");
+                assert_eq!(id, "item1");
+            }
+            _ => panic!("Wrong action type"),
+        }
+
+        // Test UpvoteItem action
+        let upvote_item = Action::UpvoteItem {
+            lane_id: "lane1".to_string(),
+            id: "item1".to_string(),
+        };
+        let json = serde_json::to_string(&upvote_item).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::UpvoteItem { lane_id, id } => {
+                assert_eq!(lane_id, "lane1");
+                assert_eq!(id, "item1");
+            }
+            _ => panic!("Wrong action type"),
+        }
+
+        // Test MoveItem action
+        let move_item = Action::MoveItem {
+            from_lane_id: "lane1".to_string(),
+            to_lane_id: "lane2".to_string(),
+            item_id: "item1".to_string(),
+        };
+        let json = serde_json::to_string(&move_item).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::MoveItem {
+                from_lane_id,
+                to_lane_id,
+                item_id,
+            } => {
+                assert_eq!(from_lane_id, "lane1");
+                assert_eq!(to_lane_id, "lane2");
+                assert_eq!(item_id, "item1");
+            }
+            _ => panic!("Wrong action type"),
+        }
+
+        // Test ReorderItem action
+        let reorder_item = Action::ReorderItem {
+            lane_id: "lane1".to_string(),
+            item_id: "item1".to_string(),
+            new_position: 5,
+        };
+        let json = serde_json::to_string(&reorder_item).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::ReorderItem {
+                lane_id,
+                item_id,
+                new_position,
+            } => {
+                assert_eq!(lane_id, "lane1");
+                assert_eq!(item_id, "item1");
+                assert_eq!(new_position, 5);
+            }
+            _ => panic!("Wrong action type"),
+        }
+    }
+
+    #[test]
+    fn test_invalid_action_json() {
+        let invalid_json = r#"{"type": "InvalidAction"}"#;
+        let result: Result<Action, _> = serde_json::from_str(invalid_json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_app_state_process_action() {
+        use std::sync::RwLock;
+        use tokio::sync::broadcast;
+
+        let board = RetroBoard::default();
+        let (tx, _rx) = broadcast::channel(100);
+        let app_state = AppState {
+            board: RwLock::new(board),
+            tx,
+        };
+
+        // Test AddLane action
+        let action = Action::AddLane {
+            title: "New Lane".to_string(),
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        assert!(board.lanes.contains_key("New Lane"));
+
+        drop(board); // Release the read lock
+
+        // Test AddItem action
+        let action = Action::AddItem {
+            lane_id: "New Lane".to_string(),
+            body: "Test Item".to_string(),
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("New Lane").unwrap();
+        assert_eq!(lane.items.len(), 1);
+        let item = lane.items.values().next().unwrap();
+        assert_eq!(item.body, "Test Item");
+
+        drop(board); // Release the read lock
+
+        // Test RemoveItem action
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("New Lane").unwrap();
+        let item_id = lane.items.keys().next().unwrap().clone();
+        drop(board); // Release the read lock
+
+        let action = Action::RemoveItem {
+            lane_id: "New Lane".to_string(),
+            id: item_id,
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("New Lane").unwrap();
+        assert_eq!(lane.items.len(), 0);
+
+        drop(board); // Release the read lock
+
+        // Test UpvoteItem action with default board
+        let action = Action::UpvoteItem {
+            lane_id: "went-well".to_string(),
+            id: "1".to_string(),
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("went-well").unwrap();
+        let item = lane.items.get("1").unwrap();
+        assert_eq!(item.vote_count, 1);
+
+        drop(board); // Release the read lock
+
+        // Test MoveItem action
+        let action = Action::MoveItem {
+            from_lane_id: "went-well".to_string(),
+            to_lane_id: "to-improve".to_string(),
+            item_id: "1".to_string(),
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let went_well_lane = board.lanes.get("went-well").unwrap();
+        let to_improve_lane = board.lanes.get("to-improve").unwrap();
+        assert!(!went_well_lane.items.contains_key("1"));
+        assert!(to_improve_lane.items.contains_key("1"));
+
+        drop(board); // Release the read lock
+
+        // Test ReorderItem action
+        let action = Action::ReorderItem {
+            lane_id: "to-improve".to_string(),
+            item_id: "1".to_string(),
+            new_position: 0,
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("to-improve").unwrap();
+        let item = lane.items.get("1").unwrap();
+        assert_eq!(item.sort_order, 0);
+    }
 }
 
 #[tokio::main]
