@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub trait ToFile {
     fn save(&self, path: &str) -> std::io::Result<()>;
 
