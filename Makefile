@@ -11,6 +11,10 @@ server-test:
 	@echo "Running server test"
 	cd server && cargo test
 
+.PHONY: server-test-coverage
+server-test-coverage:
+	cd server && cargo tarpaulin --out Xml --ignore-tests --ignore-failures
+
 .PHONY: server-debug
 server-debug:
 	@echo "Running server debug"
@@ -41,6 +45,10 @@ client-lint:
 .PHONY: client-test
 client-test:
 	cd client && pnpm run test
+
+.PHONY: client-test-coverage
+client-test-coverage:
+	cd client && pnpm run test:coverage
 
 .PHONY: client-build
 client-build:

@@ -1,10 +1,8 @@
-import type {Config} from 'tailwindcss';
-
-import kampsyUI from 'kampsy-ui/preset';
+import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ['./src/**/*.{html,js,svelte,ts}'],
-  presets: [kampsyUI],
+  content: ["./src/**/*.{html,js,svelte,ts}"],
+  presets: [],
 };
 
 export default config;

@@ -8,6 +8,9 @@ const config = {
   preprocess: vitePreprocess(),
 
   kit: {
+    alias: {
+      "@/*": "./src/lib/*",
+    },
     // Using static adapter for Docker deployment
     adapter: adapter({
       // Default options work for most cases

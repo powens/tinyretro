@@ -1,31 +1,30 @@
 <script lang="ts">
-  // import { writable } from 'svelte/store';
-  import { setContext, onMount, onDestroy } from "svelte";
-  import type { AllActions, Board } from "../lib/BoardState.svelte";
-  import RetroBoard from "./RetroBoard.svelte";
+  import { onMount, onDestroy } from "svelte";
+  import type { Board, AllActions } from "$lib/BoardState.svelte";
 
-  const SOCKET_STATE = "socketState";
-  const SEND_ACTION = "sendAction";
+  // Props interface
+  interface Props {
+    boardState: Board;
+    socketState: "connected" | "disconnected" | "connecting";
+    sendAction: (action: AllActions) => void;
+  }
 
-  let socketState = $state("disconnected");
-  let sendAction = $state<(action: AllActions) => void>(() => {
-    console.error("sendAction not initialized");
-  });
-
-  setContext(SOCKET_STATE, () => socketState);
-  setContext(SEND_ACTION, () => sendAction);
-  // const boardState = writable<Board|undefined>(undefined);
-
-  let boardState = $state({}) as Board;
-  // let { children } = $props();
+  let {
+    boardState = $bindable(),
+    socketState = $bindable(),
+    sendAction = $bindable(),
+  }: Props = $props();
 
   let socket = $state<WebSocket>();
 
   onMount(() => {
+    // Initialize WebSocket connection
+    socketState = "connecting";
+
     const hostProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     const hostAddress = window.location.hostname;
     let hostPort = window.location.port ? `:${window.location.port}` : "";
-    if (import.meta.env.DEBUG) {
+    if (import.meta.env.DEV) {
       hostPort = ":3000";
     }
 
@@ -42,7 +41,8 @@
     });
 
     socket.addEventListener("error", (event) => {
-      console.error("Error", event);
+      console.error("WebSocket error", event);
+      socketState = "disconnected";
     });
 
     socket.addEventListener("message", (event) => {
@@ -63,25 +63,17 @@
         console.error("Socket not open");
         return;
       }
-      console.debug("Sending message", action);
+      console.debug("Sending action", action);
       socket.send(JSON.stringify(action));
     };
   });
 
   onDestroy(() => {
-    if (!socket) {
-      return;
+    if (socket) {
+      socket.close();
+      socketState = "disconnected";
     }
-    socket.close();
-    socketState = "disconnected";
   });
 </script>
 
-<div>
-  <!-- {@render children?.()} -->
-  {#if !boardState.title}
-    <p>Loading...</p>
-  {:else}
-    <RetroBoard {boardState} />
-  {/if}
-</div>
+<!-- This component is purely for WebSocket management and doesn't render anything -->

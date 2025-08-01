@@ -2,5 +2,17 @@
   "rust-analyzer.linkedProjects": ["${workspaceFolder}/server/Cargo.toml"],
   "[svelte]": {
     "editor.defaultFormatter": "svelte.svelte-vscode"
-  }
+  },
+  "makefile.configureOnOpen": false,
+  "eslint.workingDirectories": ["client"],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "svelte"
+  ],
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "svelte.plugin.typescript.semanticTokens": false,
+  "svelte.plugin.svelte.note.insertFinalNewline": false
 }
