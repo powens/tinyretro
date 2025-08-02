@@ -7,12 +7,14 @@
     boardState: Board;
     socketState: "connected" | "disconnected" | "connecting";
     sendAction: (action: AllActions) => void;
+    hasInitialData: boolean;
   }
 
   let {
     boardState = $bindable(),
     socketState = $bindable(),
     sendAction = $bindable(),
+    hasInitialData = $bindable(),
   }: Props = $props();
 
   let socket = $state<WebSocket>();
@@ -49,6 +51,7 @@
       console.debug("Message from server", event.data);
       try {
         boardState = JSON.parse(event.data);
+        hasInitialData = true;
       } catch (error) {
         console.error("Error parsing JSON", error);
       }

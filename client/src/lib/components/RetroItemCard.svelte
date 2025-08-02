@@ -1,6 +1,6 @@
 <script lang="ts">
   import { scale } from "svelte/transition";
-  import { ThumbsUp, Edit2, Trash2, GripVertical } from "lucide-svelte";
+  import { ThumbsUp, Edit2, Trash2 } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button";
   import { Textarea } from "$lib/components/ui/textarea";
 
@@ -77,11 +77,8 @@
   role="button"
   tabindex="0"
   aria-label="Retro item: {item.content}"
+  data-item-id={item.id}
 >
-  <div class="drag-handle" aria-label="Drag to reorder">
-    <GripVertical size={16} />
-  </div>
-
   <div class="content">
     {#if isEditing}
       <div class="edit-form">
@@ -151,21 +148,6 @@
     cursor: grabbing;
   }
 
-  .drag-handle {
-    display: flex;
-    align-items: center;
-    color: #9ca3af;
-    cursor: grab;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-  }
-
-  .drag-handle:hover {
-    color: #6b7280;
-    background-color: #f3f4f6;
-  }
-
   .content {
     flex: 1;
     min-width: 0;
@@ -204,11 +186,5 @@
     font-size: 12px;
     min-width: 16px;
     text-align: center;
-  }
-
-  /* Drag feedback from svelte-dnd-action */
-  :global([data-is-dnd-shadow-item]) .retro-item {
-    opacity: 0.5;
-    transform: rotate(5deg);
   }
 </style>

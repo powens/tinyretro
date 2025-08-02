@@ -57,39 +57,70 @@
     ...category.items.map((item) => ({ ...item, fromLaneId: category.id })),
   ]);
 
-  // Sync items when category changes
+  // Track if we're currently dragging to avoid conflicts with server updates
+  let isDragging = $state(false);
+
+  // Sync items when category changes, but only if we're not dragging
   $effect(() => {
-    items = [
-      ...category.items.map((item) => ({ ...item, fromLaneId: category.id })),
-    ];
+    if (!isDragging) {
+      items = [
+        ...category.items.map((item) => ({ ...item, fromLaneId: category.id })),
+      ];
+    }
   });
 
   function handleDndConsider(e: CustomEvent) {
+    console.log(`Consider: ${category.title}`, {
+      items: e.detail.items.length,
+      trigger: e.detail.info?.trigger,
+      draggedElement: e.detail.info?.draggedElement?.id,
+    });
+    isDragging = true;
+    // Only update items array, don't trigger server actions during consider phase
     items = e.detail.items;
   }
 
   function handleDndFinalize(e: CustomEvent) {
-    items = e.detail.items;
+    console.log(`Finalize: ${category.title}`, {
+      items: e.detail.items.length,
+      trigger: e.detail.info?.trigger,
+      draggedElement: e.detail.info?.draggedElement?.id,
+    });
+    const finalItems = e.detail.items;
+    items = finalItems;
+
+    // Small delay to ensure DOM updates complete before resetting drag state
+    setTimeout(() => {
+      isDragging = false;
+    }, 100);
 
     // Check if this was a move between categories or reorder within same category
-    const draggedItem = e.detail.info.draggedElement;
+    const draggedElement = e.detail.info.draggedElement;
     const wasDroppedFromOutside =
       e.detail.info.trigger === TRIGGERS.DROPPED_INTO_ZONE;
 
-    if (
-      wasDroppedFromOutside &&
-      draggedItem.fromLaneId &&
-      draggedItem.fromLaneId !== category.id
-    ) {
-      // Item moved from different category
-      const newIndex = items.findIndex((item) => item.id === draggedItem.id);
-      onMoveItem(draggedItem.id, draggedItem.fromLaneId, category.id, newIndex);
+    if (wasDroppedFromOutside && draggedElement) {
+      // Extract the source lane ID from the DOM element's dataset
+      const fromLaneId = draggedElement.dataset?.fromLaneId;
+      const draggedItemId = draggedElement.dataset?.id;
+
+      if (fromLaneId && draggedItemId && fromLaneId !== category.id) {
+        // Item moved from different category
+        const newIndex = finalItems.findIndex(
+          (item) => item.id === draggedItemId
+        );
+        onMoveItem(draggedItemId, fromLaneId, category.id, newIndex);
+      } else {
+        // Reorder within same category or missing data
+        onReorderItems(category.id, finalItems);
+      }
     } else if (e.detail.info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
       // Item was dragged out to another category - let that category handle it
+      console.log(`Item dragged out of ${category.title}`);
       return;
     } else {
       // Reorder within same category
-      onReorderItems(category.id, items);
+      onReorderItems(category.id, finalItems);
     }
   }
 </script>
@@ -115,14 +146,18 @@
         items: items,
         flipDurationMs: 300,
         dropTargetStyle: {},
-        dragDisabled: false,
-        morphDisabled: false,
+        morphDisabled: true,
         centreDraggedOnCursor: true,
         dropFromOthersDisabled: false,
-        transformDraggedElement: (draggedEl) => {
+        transformDraggedElement: (draggedEl, draggedItem) => {
           // Add category info to dragged element for cross-category moves
           if (draggedEl) {
             draggedEl.dataset.fromLaneId = category.id;
+
+            // Set the item ID from the draggedItem data
+            if (draggedItem && draggedItem.id) {
+              draggedEl.dataset.id = draggedItem.id;
+            }
           }
         },
       }}
@@ -155,44 +190,4 @@
 </Card>
 
 <style>
-  /* Hide any drop zones that appear outside of cards */
-  :global(body > .dnd-drop-zone),
-  :global(.dnd-drop-zone-placeholder),
-  :global([data-is-dnd-shadow-placeholder]) {
-    display: none !important;
-  }
-
-  /* Style drop zones only within our container */
-  .dnd-container :global([data-is-dnd-shadow-placeholder]) {
-    display: block !important;
-    min-height: 60px;
-    background-color: rgba(59, 130, 246, 0.05);
-    border: 2px dashed rgba(59, 130, 246, 0.3);
-    border-radius: 8px;
-    margin: 8px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(59, 130, 246, 0.7);
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-  }
-
-  .dnd-container :global([data-is-dnd-shadow-placeholder]::before) {
-    content: "Drop item here";
-  }
-
-  /* Ensure the container has proper overflow handling */
-  .dnd-container {
-    position: relative;
-    overflow: visible;
-  }
-
-  /* Style for dragged items */
-  :global([data-is-dnd-shadow-item]) {
-    opacity: 0.5;
-    transform: rotate(2deg);
-    transition: all 0.2s ease;
-  }
 </style>

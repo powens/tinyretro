@@ -1,11 +1,10 @@
 import { test, expect, vi } from "vitest";
+import * as BoardStateModule from "./BoardState.svelte";
 
 // Test the type definitions and interfaces
 test("BoardState types are properly defined", () => {
-  // Import the types to ensure they're properly exported
-  import("./BoardState.svelte.ts").then((module) => {
-    expect(module).toBeDefined();
-  });
+  // Check that the module is properly exported
+  expect(BoardStateModule).toBeDefined();
 });
 
 // Test type safety with valid objects
@@ -26,7 +25,7 @@ test("Lane type validation", () => {
     title: "Test Lane",
     theme: "went-well" as const,
     items: {
-      "item1": {
+      item1: {
         body: "Test item",
         vote_count: 0,
         sort_order: 0,
@@ -43,7 +42,7 @@ test("Board type validation", () => {
   const board = {
     title: "Test Board",
     lanes: {
-      "lane1": {
+      lane1: {
         title: "Test Lane",
         theme: "went-well" as const,
         items: {},
@@ -103,7 +102,7 @@ test("WebsocketState type validation", () => {
 
 test("SendActionFunc type validation", () => {
   const mockSendAction = vi.fn();
-  
+
   const action = {
     type: "AddItem" as const,
     lane_id: "test-lane",
@@ -111,6 +110,6 @@ test("SendActionFunc type validation", () => {
   };
 
   mockSendAction(action);
-  
+
   expect(mockSendAction).toHaveBeenCalledWith(action);
 });

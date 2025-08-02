@@ -5,6 +5,7 @@
   import CategoryCard from "$lib/components/CategoryCard.svelte";
   import EmptyState from "$lib/components/EmptyState.svelte";
   import WebSocketConnection from "$lib/components/WebSocketConnection.svelte";
+  import LoadingState from "$lib/components/LoadingState.svelte";
   import type { Board, AllActions } from "$lib/BoardState.svelte";
 
   // WebSocket connection - managed by WebSocketConnection component
@@ -15,6 +16,7 @@
     console.error("sendAction not initialized");
   });
   let boardState = $state({}) as Board;
+  let hasInitialData = $state(false);
 
   // UI State
   let isDarkMode = $state(false);
@@ -106,7 +108,13 @@
   }
 
   // NEW: Simplified drag and drop handlers for svelte-dnd-action
-  function handleMoveItem(itemId: string, fromLaneId: string, toLaneId: string, _newIndex?: number) {
+  function handleMoveItem(
+    itemId: string,
+    fromLaneId: string,
+    toLaneId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    newIndex: number
+  ) {
     if (!sendAction) return;
 
     // Add the fromLaneId to the item for cross-category moves
@@ -118,7 +126,10 @@
     });
   }
 
-  function handleReorderItems(laneId: string, items: Array<{id: string; sortOrder: number}>) {
+  function handleReorderItems(
+    laneId: string,
+    items: Array<{ id: string; sortOrder: number }>
+  ) {
     if (!sendAction) return;
 
     // Send reorder actions for each item that changed position
@@ -177,43 +188,56 @@
   class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200"
 >
   <!-- WebSocket Connection Management -->
-  <WebSocketConnection bind:boardState bind:socketState bind:sendAction />
+  <WebSocketConnection
+    bind:boardState
+    bind:socketState
+    bind:sendAction
+    bind:hasInitialData
+  />
 
-  <!-- Header -->
-  <RetroHeader bind:isDarkMode onAddCategory={() => (showAddCategory = true)} />
-
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Add Category Modal -->
-    <AddCategoryModal
-      bind:open={showAddCategory}
-      bind:categoryTitle={newCategoryTitle}
-      onAddCategory={addCategory}
-      onCancel={handleAddCategoryCancel}
+  {#if !hasInitialData}
+    <!-- Loading State -->
+    <LoadingState {socketState} />
+  {:else}
+    <!-- Header -->
+    <RetroHeader
+      bind:isDarkMode
+      onAddCategory={() => (showAddCategory = true)}
     />
 
-    <!-- Categories Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each lanes as category (category.id)}
-        <CategoryCard
-          {category}
-          bind:editingItem
-          bind:editingContent
-          onMoveItem={handleMoveItem}
-          onReorderItems={handleReorderItems}
-          onAddItem={addItem}
-          onVoteItem={voteItem}
-          onDeleteItem={deleteItem}
-          onStartEdit={startEdit}
-          onSaveEdit={saveEdit}
-          onCancelEdit={cancelEdit}
-        />
-      {/each}
-    </div>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Add Category Modal -->
+      <AddCategoryModal
+        bind:open={showAddCategory}
+        bind:categoryTitle={newCategoryTitle}
+        onAddCategory={addCategory}
+        onCancel={handleAddCategoryCancel}
+      />
 
-    <!-- Empty State -->
-    {#if lanes.length === 0}
-      <EmptyState onAddCategory={() => (showAddCategory = true)} />
-    {/if}
-  </main>
+      <!-- Categories Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {#each lanes as category (category.id)}
+          <CategoryCard
+            {category}
+            bind:editingItem
+            bind:editingContent
+            onMoveItem={handleMoveItem}
+            onReorderItems={handleReorderItems}
+            onAddItem={addItem}
+            onVoteItem={voteItem}
+            onDeleteItem={deleteItem}
+            onStartEdit={startEdit}
+            onSaveEdit={saveEdit}
+            onCancelEdit={cancelEdit}
+          />
+        {/each}
+      </div>
+
+      <!-- Empty State -->
+      {#if lanes.length === 0}
+        <EmptyState onAddCategory={() => (showAddCategory = true)} />
+      {/if}
+    </main>
+  {/if}
 </div>
