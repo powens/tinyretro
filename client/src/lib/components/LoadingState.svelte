@@ -33,7 +33,7 @@
     <!-- Status message -->
     <div class="space-y-2">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-        Sprint Retrospective Board
+        tinyretro
       </h2>
       <p class="text-gray-600 dark:text-gray-400">
         {statusMessages[socketState]}

@@ -22,7 +22,7 @@
     <div class="flex justify-between items-center h-16">
       <div class="flex items-center">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          Sprint Retrospective
+          tinyretro
         </h1>
         <Badge variant="secondary" class="ml-3">Sprint {sprintNumber}</Badge>
       </div>

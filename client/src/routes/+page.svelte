@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import RetroHeader from "$lib/components/RetroHeader.svelte";
   import AddCategoryModal from "$lib/components/AddCategoryModal.svelte";
-  import CategoryCard from "$lib/components/CategoryCard.svelte";
+  import CategoryCard from "@/components/RetroCategory.svelte";
   import EmptyState from "$lib/components/EmptyState.svelte";
   import WebSocketConnection from "$lib/components/WebSocketConnection.svelte";
   import LoadingState from "$lib/components/LoadingState.svelte";
@@ -117,6 +117,8 @@
   ) {
     if (!sendAction) return;
 
+    console.debug("handleMoveItem", { itemId, fromLaneId, toLaneId, newIndex });
+
     // Add the fromLaneId to the item for cross-category moves
     sendAction({
       type: "MoveItem",
@@ -181,7 +183,7 @@
 </script>
 
 <svelte:head>
-  <title>Sprint Retrospective Board</title>
+  <title>tinyretro</title>
 </svelte:head>
 
 <div
