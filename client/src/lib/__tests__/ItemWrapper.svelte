@@ -11,19 +11,19 @@
     cardBg = "",
     cardBorder = "",
     mergeSource = null as MergeContext["source"],
-    onMergeStart = (
-      _laneId: string,
-      _itemId: string,
-      _body: string,
-      _vote_count: number,
-    ) => {},
+    onMergeStart = (() => {}) as (
+      laneId: string,
+      itemId: string,
+      body: string,
+      vote_count: number,
+    ) => void,
     onMergeCancel = () => {},
   }: {
     id?: string;
     body?: string;
     vote_count?: number;
     laneId?: string;
-    sendAction?: (...args: any[]) => void;
+    sendAction?: (...args: unknown[]) => void;
     cardBg?: string;
     cardBorder?: string;
     mergeSource?: MergeContext["source"];

@@ -3,7 +3,7 @@ import { test, expect, vi } from "vitest";
 // Test the type definitions and interfaces
 test("BoardState types are properly defined", () => {
   // Import the types to ensure they're properly exported
-  import("./BoardState.svelte.ts").then((module) => {
+  import("./BoardState.svelte").then((module) => {
     expect(module).toBeDefined();
   });
 });

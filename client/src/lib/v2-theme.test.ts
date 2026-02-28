@@ -39,7 +39,7 @@ describe("v2-theme", () => {
       "accent",
     ];
 
-    for (const [key, theme] of Object.entries(laneThemeMap)) {
+    for (const theme of Object.values(laneThemeMap)) {
       for (const prop of requiredKeys) {
         expect(theme).toHaveProperty(prop);
         expect((theme as Record<string, string>)[prop]).toBeTruthy();

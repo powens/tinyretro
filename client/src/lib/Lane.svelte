@@ -6,7 +6,6 @@
     SendActionFunc,
   } from "$lib/BoardState.svelte";
   import { getLaneTheme } from "./v2-theme";
-  import { getMergeContext } from "./merge-context";
   import Item from "./Item.svelte";
   import Button from "./Button.svelte";
   import { dndzone, SHADOW_PLACEHOLDER_ITEM_ID } from "svelte-dnd-action";
@@ -28,7 +27,6 @@
     onDndFinalize: (items: DndItem[]) => void;
   } = $props();
 
-  const merge = getMergeContext();
   let theme = $derived(getLaneTheme(lane.theme));
 
   let isAdding = $state(false);

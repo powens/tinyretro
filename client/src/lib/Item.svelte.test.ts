@@ -1,5 +1,5 @@
 import { render, screen, cleanup } from "@testing-library/svelte";
-import { describe, test, expect, vi, beforeAll, beforeEach } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import ItemWrapper from "./__tests__/ItemWrapper.svelte";
 
@@ -20,7 +20,7 @@ vi.mock("@lucide/svelte", async () => {
 
 // Helper: warm up + render. Svelte 5's template hydration in jsdom needs
 // several render/cleanup cycles before text-node references stabilise.
-function renderItem(props: Record<string, any> = {}) {
+function renderItem(props: Record<string, unknown> = {}) {
   cleanup();
   const defaults = {
     id: "item-1",
@@ -32,7 +32,7 @@ function renderItem(props: Record<string, any> = {}) {
   for (let i = 0; i < 5; i++) {
     try {
       render(ItemWrapper, merged);
-    } catch {}
+    } catch { /* Svelte 5 jsdom warm-up */ }
     cleanup();
   }
   return render(ItemWrapper, merged);

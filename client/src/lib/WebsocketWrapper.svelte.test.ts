@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import WebsocketWrapperTest from "./__tests__/WebsocketWrapperTest.svelte";
 
 // -- Mock WebSocket --
-type WsListener = (event: any) => void;
+type WsListener = (event: unknown) => void;
 
 class MockWebSocket {
   static OPEN = 1;
@@ -40,7 +40,7 @@ class MockWebSocket {
   }
 
   // Test helpers
-  _emit(type: string, data?: any) {
+  _emit(type: string, data?: unknown) {
     for (const fn of this.listeners[type] ?? []) {
       fn(data ?? {});
     }
@@ -51,7 +51,7 @@ class MockWebSocket {
     this._emit("open");
   }
 
-  _message(payload: any) {
+  _message(payload: unknown) {
     this._emit("message", { data: JSON.stringify(payload) });
   }
 
@@ -67,7 +67,7 @@ function renderWrapper() {
   for (let i = 0; i < 3; i++) {
     try {
       render(WebsocketWrapperTest);
-    } catch {}
+    } catch { /* Svelte 5 jsdom warm-up */ }
     cleanup();
   }
   return render(WebsocketWrapperTest);

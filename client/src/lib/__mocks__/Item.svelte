@@ -3,16 +3,12 @@
     id,
     body,
     vote_count,
-    laneId,
-    sendAction,
-    cardBg,
-    cardBorder,
   }: {
     id: string;
     body: string;
     vote_count: number;
-    laneId: string;
-    sendAction: (...args: any[]) => void;
+    laneId?: string;
+    sendAction?: (...args: unknown[]) => void;
     cardBg?: string;
     cardBorder?: string;
   } = $props();

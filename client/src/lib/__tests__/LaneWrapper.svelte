@@ -12,21 +12,21 @@
     },
     items = [] as DndItem[],
     sendAction = () => {},
-    onDndConsider = (_items: DndItem[]) => {},
-    onDndFinalize = (_items: DndItem[]) => {},
+    onDndConsider = (() => {}) as (items: DndItem[]) => void,
+    onDndFinalize = (() => {}) as (items: DndItem[]) => void,
     mergeSource = null as MergeContext["source"],
-    onMergeStart = (
-      _laneId: string,
-      _itemId: string,
-      _body: string,
-      _vote_count: number,
-    ) => {},
+    onMergeStart = (() => {}) as (
+      laneId: string,
+      itemId: string,
+      body: string,
+      vote_count: number,
+    ) => void,
     onMergeCancel = () => {},
   }: {
     laneId?: string;
     lane?: LaneType;
     items?: DndItem[];
-    sendAction?: (...args: any[]) => void;
+    sendAction?: (...args: unknown[]) => void;
     onDndConsider?: (items: DndItem[]) => void;
     onDndFinalize?: (items: DndItem[]) => void;
     mergeSource?: MergeContext["source"];

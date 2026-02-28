@@ -33,14 +33,16 @@ vi.mock("@lucide/svelte", async () => {
 // Warm up + render helper (Svelte 5 jsdom first-render bug)
 function renderBoard(props: {
   boardState: BoardType;
-  sendAction?: (...args: any[]) => void;
+  sendAction?: (...args: unknown[]) => void;
 }) {
   cleanup();
   const merged = { sendAction: () => {}, ...props };
   for (let i = 0; i < 3; i++) {
     try {
       render(Board, merged);
-    } catch {}
+    } catch {
+      /* Svelte 5 jsdom warm-up */
+    }
     cleanup();
   }
   return render(Board, merged);

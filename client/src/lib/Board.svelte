@@ -6,7 +6,7 @@
     SendActionFunc,
   } from "$lib/BoardState.svelte";
   import Lane from "./Lane.svelte";
-  import { setMergeContext, type MergeContext } from "./merge-context";
+  import { setMergeContext } from "./merge-context";
   import { SHADOW_ITEM_MARKER_PROPERTY_NAME } from "svelte-dnd-action";
 
   const {
