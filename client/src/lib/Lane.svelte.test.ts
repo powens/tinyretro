@@ -35,7 +35,9 @@ vi.mock("@lucide/svelte", async () => {
 beforeAll(() => {
   try {
     render(LaneWrapper);
-  } catch { /* Svelte 5 jsdom warm-up */ }
+  } catch {
+    /* Svelte 5 jsdom warm-up */
+  }
   cleanup();
 });
 

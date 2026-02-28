@@ -26,12 +26,18 @@ pub struct RetroLane {
 impl RetroLane {
     fn add_item(&mut self, body: &str) {
         let id = Uuid::new_v4().to_string();
+        let next_sort_order = self
+            .items
+            .values()
+            .map(|item| item.sort_order)
+            .max()
+            .map_or(0, |max| max + 1);
         self.items.insert(
             id,
             RetroItem {
                 body: body.to_owned(),
                 vote_count: 0,
-                sort_order: self.items.len() as u64,
+                sort_order: next_sort_order,
             },
         );
     }
@@ -205,13 +211,23 @@ impl RetroBoard {
         if let Some(mut item) = item {
             if let Some(to_lane) = self.lanes.get_mut(to_lane_id) {
                 // Assign sort_order to the end of the destination lane
-                item.sort_order = to_lane.items.len() as u64;
+                let next_sort_order = to_lane
+                    .items
+                    .values()
+                    .map(|i| i.sort_order)
+                    .max()
+                    .map_or(0, |max| max + 1);
+                item.sort_order = next_sort_order;
                 to_lane.items.insert(item_id.to_string(), item);
             } else {
                 tracing::error!("Lane with ID '{}' does not exist", to_lane_id);
             }
         } else {
-            tracing::error!("Item with ID '{}' not found in lane '{}'", item_id, from_lane_id);
+            tracing::error!(
+                "Item with ID '{}' not found in lane '{}'",
+                item_id,
+                from_lane_id
+            );
         }
     }
 
@@ -237,7 +253,11 @@ impl RetroBoard {
         if let Some(lane) = self.lanes.get_mut(lane_id) {
             // Verify both items exist before mutating anything
             if !lane.items.contains_key(source_id) {
-                tracing::error!("Source item '{}' not found in lane '{}'", source_id, lane_id);
+                tracing::error!(
+                    "Source item '{}' not found in lane '{}'",
+                    source_id,
+                    lane_id
+                );
                 return;
             }
             if !lane.items.contains_key(target_id) {
@@ -347,13 +367,13 @@ mod tests {
         lane.add_item("First Item");
         lane.add_item("Second Item");
         lane.add_item("Third Item");
-        
+
         assert_eq!(lane.items.len(), 3);
-        
+
         // Verify sort orders are correct
         let mut items: Vec<_> = lane.items.values().collect();
         items.sort_by_key(|item| item.sort_order);
-        
+
         assert_eq!(items[0].sort_order, 0);
         assert_eq!(items[1].sort_order, 1);
         assert_eq!(items[2].sort_order, 2);
@@ -714,22 +734,22 @@ mod tests {
     #[test]
     fn test_retroboard_default() {
         let board = RetroBoard::default();
-        
+
         assert_eq!(board.title, "My Retro Board");
         assert_eq!(board.lanes.len(), 3);
-        
+
         assert!(board.lanes.contains_key("went-well"));
         assert!(board.lanes.contains_key("to-improve"));
         assert!(board.lanes.contains_key("action-items"));
-        
+
         let went_well = board.lanes.get("went-well").unwrap();
         assert_eq!(went_well.title, "Went Well");
         assert_eq!(went_well.items.len(), 2);
-        
+
         let to_improve = board.lanes.get("to-improve").unwrap();
         assert_eq!(to_improve.title, "To Improve");
         assert_eq!(to_improve.items.len(), 2);
-        
+
         let action_items = board.lanes.get("action-items").unwrap();
         assert_eq!(action_items.title, "Action Items");
         assert_eq!(action_items.items.len(), 2);
@@ -756,10 +776,10 @@ mod tests {
         assert_eq!(loaded_board.title, "Test Board");
         assert_eq!(loaded_board.lanes.len(), 1);
         assert!(loaded_board.lanes.contains_key("Test Lane"));
-        
+
         let lane = loaded_board.lanes.get("Test Lane").unwrap();
         assert_eq!(lane.items.len(), 1);
-        
+
         let item = lane.items.values().next().unwrap();
         assert_eq!(item.body, "Test Item");
     }
@@ -767,7 +787,7 @@ mod tests {
     #[test]
     fn test_load_from_nonexistent_file() {
         let board = RetroBoard::load_from_file("/nonexistent/path.json");
-        
+
         // Should return default board when file doesn't exist
         assert_eq!(board.title, "My Retro Board");
         assert_eq!(board.lanes.len(), 3);
@@ -783,7 +803,7 @@ mod tests {
         std::fs::write(file_path_str, "invalid json content").unwrap();
 
         let board = RetroBoard::load_from_file(file_path_str);
-        
+
         // Should return default board when JSON is invalid
         assert_eq!(board.title, "My Retro Board");
         assert_eq!(board.lanes.len(), 3);
@@ -896,5 +916,90 @@ mod tests {
 
         let lane = board.lanes.get("Test Lane").unwrap();
         assert!(lane.items.contains_key(&source_id));
+    }
+
+    #[test]
+    fn test_move_item_no_duplicate_sort_order_after_removal() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 1");
+        board.add_lane("Lane 2");
+
+        // Add three items to Lane 2 (sort_orders: 0, 1, 2)
+        board.add_item("Lane 2", "Item A");
+        board.add_item("Lane 2", "Item B");
+        board.add_item("Lane 2", "Item C");
+
+        // Remove the middle item (sort_order 1), leaving a gap: [0, 2]
+        let lane2 = board.lanes.get("Lane 2").unwrap();
+        let middle_id = lane2
+            .items
+            .iter()
+            .find(|(_, item)| item.sort_order == 1)
+            .map(|(id, _)| id.clone())
+            .unwrap();
+        board.remove_item("Lane 2", &middle_id);
+
+        // Lane 2 now has 2 items with sort_orders [0, 2]; len() == 2
+        // Moving an item in should NOT assign sort_order 2 (duplicate)
+        board.add_item("Lane 1", "Moved Item");
+        let lane1 = board.lanes.get("Lane 1").unwrap();
+        let moved_id = lane1.items.keys().next().unwrap().clone();
+        board.move_item("Lane 1", "Lane 2", &moved_id);
+
+        let lane2 = board.lanes.get("Lane 2").unwrap();
+        let sort_orders: Vec<u64> = lane2.items.values().map(|i| i.sort_order).collect();
+        let mut unique = sort_orders.clone();
+        unique.sort();
+        unique.dedup();
+        assert_eq!(
+            sort_orders.len(),
+            unique.len(),
+            "Duplicate sort_orders found: {:?}",
+            sort_orders
+        );
+    }
+
+    #[test]
+    fn test_add_item_no_duplicate_sort_order_after_removal() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Lane 1");
+
+        // Add three items (sort_orders: 0, 1, 2)
+        board.add_item("Lane 1", "Item A");
+        board.add_item("Lane 1", "Item B");
+        board.add_item("Lane 1", "Item C");
+
+        // Remove the middle item (sort_order 1), leaving [0, 2]; len() == 2
+        let lane = board.lanes.get("Lane 1").unwrap();
+        let middle_id = lane
+            .items
+            .iter()
+            .find(|(_, item)| item.sort_order == 1)
+            .map(|(id, _)| id.clone())
+            .unwrap();
+        board.remove_item("Lane 1", &middle_id);
+
+        // Adding a new item should NOT assign sort_order 2
+        board.add_item("Lane 1", "Item D");
+
+        let lane = board.lanes.get("Lane 1").unwrap();
+        let sort_orders: Vec<u64> = lane.items.values().map(|i| i.sort_order).collect();
+        let mut unique = sort_orders.clone();
+        unique.sort();
+        unique.dedup();
+        assert_eq!(
+            sort_orders.len(),
+            unique.len(),
+            "Duplicate sort_orders found: {:?}",
+            sort_orders
+        );
     }
 }

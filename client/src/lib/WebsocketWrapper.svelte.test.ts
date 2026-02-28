@@ -67,7 +67,9 @@ function renderWrapper() {
   for (let i = 0; i < 3; i++) {
     try {
       render(WebsocketWrapperTest);
-    } catch { /* Svelte 5 jsdom warm-up */ }
+    } catch {
+      /* Svelte 5 jsdom warm-up */
+    }
     cleanup();
   }
   return render(WebsocketWrapperTest);

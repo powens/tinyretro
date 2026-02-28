@@ -32,7 +32,9 @@ function renderItem(props: Record<string, unknown> = {}) {
   for (let i = 0; i < 5; i++) {
     try {
       render(ItemWrapper, merged);
-    } catch { /* Svelte 5 jsdom warm-up */ }
+    } catch {
+      /* Svelte 5 jsdom warm-up */
+    }
     cleanup();
   }
   return render(ItemWrapper, merged);
