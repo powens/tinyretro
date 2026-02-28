@@ -202,12 +202,64 @@ impl RetroBoard {
         };
 
         // Add the item to the destination lane if it was found
-        if let Some(item) = item {
+        if let Some(mut item) = item {
             if let Some(to_lane) = self.lanes.get_mut(to_lane_id) {
+                // Assign sort_order to the end of the destination lane
+                item.sort_order = to_lane.items.len() as u64;
                 to_lane.items.insert(item_id.to_string(), item);
             } else {
                 tracing::error!("Lane with ID '{}' does not exist", to_lane_id);
             }
+        } else {
+            tracing::error!("Item with ID '{}' not found in lane '{}'", item_id, from_lane_id);
+        }
+    }
+
+    pub fn edit_item(&mut self, lane_id: &str, id: &str, body: &str) {
+        if let Some(lane) = self.lanes.get_mut(lane_id) {
+            if let Some(item) = lane.items.get_mut(id) {
+                item.body = body.to_owned();
+            } else {
+                tracing::error!("Item with ID '{}' not found in lane '{}'", id, lane_id);
+            }
+        } else {
+            tracing::error!("Lane with ID '{}' not found", lane_id);
+        }
+    }
+
+    pub fn merge_items(
+        &mut self,
+        lane_id: &str,
+        source_id: &str,
+        target_id: &str,
+        merged_body: &str,
+    ) {
+        if let Some(lane) = self.lanes.get_mut(lane_id) {
+            // Verify both items exist before mutating anything
+            if !lane.items.contains_key(source_id) {
+                tracing::error!("Source item '{}' not found in lane '{}'", source_id, lane_id);
+                return;
+            }
+            if !lane.items.contains_key(target_id) {
+                tracing::error!(
+                    "Target item '{}' not found in lane '{}'",
+                    target_id,
+                    lane_id
+                );
+                return;
+            }
+
+            let source_votes = lane.items.get(source_id).unwrap().vote_count;
+
+            // Remove the source item (safe — we verified it exists above)
+            lane.items.remove(source_id);
+
+            // Update the target item (safe — we verified it exists above)
+            let target = lane.items.get_mut(target_id).unwrap();
+            target.body = merged_body.to_owned();
+            target.vote_count += source_votes;
+        } else {
+            tracing::error!("Lane with ID '{}' not found", lane_id);
         }
     }
 
@@ -735,5 +787,114 @@ mod tests {
         // Should return default board when JSON is invalid
         assert_eq!(board.title, "My Retro Board");
         assert_eq!(board.lanes.len(), 3);
+    }
+
+    #[test]
+    fn test_edit_item() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+        board.add_item("Test Lane", "Original body");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        let item_id = lane.items.keys().next().unwrap().clone();
+
+        board.edit_item("Test Lane", &item_id, "Updated body");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        let item = lane.items.get(&item_id).unwrap();
+        assert_eq!(item.body, "Updated body");
+    }
+
+    #[test]
+    fn test_edit_item_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        // Should not panic, just log error
+        board.edit_item("Nonexistent", "id", "body");
+    }
+
+    #[test]
+    fn test_edit_item_nonexistent_item() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+
+        // Should not panic, just log error
+        board.edit_item("Test Lane", "nonexistent", "body");
+    }
+
+    #[test]
+    fn test_merge_items() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+        board.add_item("Test Lane", "First item");
+        board.add_item("Test Lane", "Second item");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        let mut ids: Vec<String> = lane.items.keys().cloned().collect();
+        ids.sort();
+        let source_id = ids[0].clone();
+        let target_id = ids[1].clone();
+
+        // Upvote the source to verify vote transfer
+        board.upvote_item("Test Lane", &source_id);
+        board.upvote_item("Test Lane", &source_id);
+        // Upvote the target
+        board.upvote_item("Test Lane", &target_id);
+
+        board.merge_items("Test Lane", &source_id, &target_id, "Merged body");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        assert_eq!(lane.items.len(), 1);
+        assert!(!lane.items.contains_key(&source_id));
+
+        let target = lane.items.get(&target_id).unwrap();
+        assert_eq!(target.body, "Merged body");
+        assert_eq!(target.vote_count, 3); // 2 from source + 1 from target
+    }
+
+    #[test]
+    fn test_merge_items_nonexistent_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        // Should not panic
+        board.merge_items("Nonexistent", "s", "t", "body");
+    }
+
+    #[test]
+    fn test_merge_items_nonexistent_target() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+        board.add_item("Test Lane", "Item");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        let source_id = lane.items.keys().next().unwrap().clone();
+
+        // Merge with nonexistent target - source should NOT be removed
+        board.merge_items("Test Lane", &source_id, "nonexistent", "body");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        assert!(lane.items.contains_key(&source_id));
     }
 }

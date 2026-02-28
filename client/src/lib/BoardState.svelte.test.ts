@@ -26,7 +26,7 @@ test("Lane type validation", () => {
     title: "Test Lane",
     theme: "went-well" as const,
     items: {
-      "item1": {
+      item1: {
         body: "Test item",
         vote_count: 0,
         sort_order: 0,
@@ -43,7 +43,7 @@ test("Board type validation", () => {
   const board = {
     title: "Test Board",
     lanes: {
-      "lane1": {
+      lane1: {
         title: "Test Lane",
         theme: "went-well" as const,
         items: {},
@@ -82,28 +82,79 @@ test("Action types validation", () => {
     new_position: 2,
   };
 
+  const addLaneAction = {
+    type: "AddLane" as const,
+    title: "New Lane",
+  };
+
+  const removeItemAction = {
+    type: "RemoveItem" as const,
+    lane_id: "test-lane",
+    id: "item-id",
+  };
+
+  const editItemAction = {
+    type: "EditItem" as const,
+    lane_id: "test-lane",
+    id: "item-id",
+    body: "Updated body",
+  };
+
+  const mergeItemsAction = {
+    type: "MergeItems" as const,
+    lane_id: "test-lane",
+    source_id: "source-item",
+    target_id: "target-item",
+    merged_body: "Combined text",
+  };
+
   expect(addItemAction.type).toBe("AddItem");
   expect(upvoteAction.type).toBe("UpvoteItem");
   expect(moveAction.type).toBe("MoveItem");
   expect(reorderAction.type).toBe("ReorderItem");
+  expect(addLaneAction.type).toBe("AddLane");
+  expect(removeItemAction.type).toBe("RemoveItem");
+  expect(editItemAction.type).toBe("EditItem");
+  expect(mergeItemsAction.type).toBe("MergeItems");
 });
 
-test("WebsocketState type validation", () => {
-  const websocketState = {
-    state: {
-      title: "Test Board",
-      lanes: {},
-    },
-    connected: true,
+test("MergeSource type validation", () => {
+  const mergeSource = {
+    laneId: "lane-1",
+    itemId: "item-1",
+    body: "Test body",
+    vote_count: 3,
   };
 
-  expect(websocketState.connected).toBe(true);
-  expect(websocketState.state?.title).toBe("Test Board");
+  expect(mergeSource.laneId).toBe("lane-1");
+  expect(mergeSource.itemId).toBe("item-1");
+  expect(mergeSource.body).toBe("Test body");
+  expect(mergeSource.vote_count).toBe(3);
+
+  const nullSource = null;
+  expect(nullSource).toBeNull();
+});
+
+test("DndItem type validation", () => {
+  const dndItem = {
+    id: "item-1",
+    body: "Drag me",
+    vote_count: 2,
+    sort_order: 0,
+  };
+
+  expect(dndItem.id).toBe("item-1");
+  expect(dndItem.body).toBe("Drag me");
+  expect(dndItem.vote_count).toBe(2);
+  expect(dndItem.sort_order).toBe(0);
+
+  const shadowItem = { ...dndItem, isDndShadowItem: true };
+  expect(shadowItem.isDndShadowItem).toBe(true);
 });
 
 test("SendActionFunc type validation", () => {
   const mockSendAction = vi.fn();
-  
+
   const action = {
     type: "AddItem" as const,
     lane_id: "test-lane",
@@ -111,6 +162,6 @@ test("SendActionFunc type validation", () => {
   };
 
   mockSendAction(action);
-  
+
   expect(mockSendAction).toHaveBeenCalledWith(action);
 });
