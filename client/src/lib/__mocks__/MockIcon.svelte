@@ -8,5 +8,7 @@
   width={size}
   height={size}
   stroke-width={strokeWidth}
-  data-testid="mock-icon"><rect /></svg
+  data-testid="mock-icon"
 >
+  <rect />
+</svg>

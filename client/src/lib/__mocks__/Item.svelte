@@ -14,7 +14,7 @@
   } = $props();
 </script>
 
-<div data-testid="item-{id}" aria-label="Retro item: {body}">
+<div data-testid={`item-${id}`} aria-label={`Retro item: ${body}`}>
   <p>{body}</p>
   <span>{vote_count}</span>
 </div>

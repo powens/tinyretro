@@ -47,7 +47,11 @@ impl RetroLane {
     }
 
     fn increment_vote(&mut self, id: &str) {
-        self.items.get_mut(id).unwrap().increment_vote();
+        if let Some(item) = self.items.get_mut(id) {
+            item.increment_vote();
+        } else {
+            tracing::error!("Item with ID '{}' not found in lane", id);
+        }
     }
 }
 
@@ -181,15 +185,27 @@ impl RetroBoard {
     }
 
     pub fn add_item(&mut self, lane_id: &str, body: &str) {
-        self.lanes.get_mut(lane_id).unwrap().add_item(body);
+        if let Some(lane) = self.lanes.get_mut(lane_id) {
+            lane.add_item(body);
+        } else {
+            tracing::error!("Lane with ID '{}' not found", lane_id);
+        }
     }
 
     pub fn remove_item(&mut self, lane_id: &str, id: &str) {
-        self.lanes.get_mut(lane_id).unwrap().remove_item(id);
+        if let Some(lane) = self.lanes.get_mut(lane_id) {
+            lane.remove_item(id);
+        } else {
+            tracing::error!("Lane with ID '{}' not found", lane_id);
+        }
     }
 
     pub fn upvote_item(&mut self, lane_id: &str, id: &str) {
-        self.lanes.get_mut(lane_id).unwrap().increment_vote(id);
+        if let Some(lane) = self.lanes.get_mut(lane_id) {
+            lane.increment_vote(id);
+        } else {
+            tracing::error!("Lane with ID '{}' not found", lane_id);
+        }
     }
 
     pub fn move_item(&mut self, from_lane_id: &str, to_lane_id: &str, item_id: &str) {
@@ -250,6 +266,15 @@ impl RetroBoard {
         target_id: &str,
         merged_body: &str,
     ) {
+        if source_id == target_id {
+            tracing::error!(
+                "Cannot merge item '{}' with itself in lane '{}'",
+                source_id,
+                lane_id
+            );
+            return;
+        }
+
         if let Some(lane) = self.lanes.get_mut(lane_id) {
             // Verify both items exist before mutating anything
             if !lane.items.contains_key(source_id) {
@@ -422,7 +447,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_increment_vote_nonexistent_item() {
         let mut lane = RetroLane {
             title: "Test Lane".to_string(),
@@ -430,7 +454,7 @@ mod tests {
             items: HashMap::new(),
         };
 
-        // This should panic because the item doesn't exist
+        // Should not panic — gracefully logs and returns
         lane.increment_vote("nonexistent");
     }
 
@@ -492,14 +516,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_add_item_to_nonexistent_lane() {
         let mut board = RetroBoard {
             title: "Test Board".to_string(),
             lanes: HashMap::new(),
         };
 
-        // This should panic because the lane doesn't exist
+        // Should not panic — gracefully logs and returns
         board.add_item("Nonexistent Lane", "Test Item");
     }
 
@@ -520,14 +543,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_remove_item_from_nonexistent_lane() {
         let mut board = RetroBoard {
             title: "Test Board".to_string(),
             lanes: HashMap::new(),
         };
 
-        // This should panic because the lane doesn't exist
+        // Should not panic — gracefully logs and returns
         board.remove_item("Nonexistent Lane", "item_id");
     }
 
@@ -549,15 +571,27 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_upvote_item_in_nonexistent_lane() {
         let mut board = RetroBoard {
             title: "Test Board".to_string(),
             lanes: HashMap::new(),
         };
 
-        // This should panic because the lane doesn't exist
+        // Should not panic — gracefully logs and returns
         board.upvote_item("Nonexistent Lane", "item_id");
+    }
+
+    #[test]
+    fn test_upvote_nonexistent_item_in_lane() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+
+        // Should not panic — gracefully logs and returns
+        board.upvote_item("Test Lane", "nonexistent_item");
     }
 
     #[test]
@@ -916,6 +950,26 @@ mod tests {
 
         let lane = board.lanes.get("Test Lane").unwrap();
         assert!(lane.items.contains_key(&source_id));
+    }
+
+    #[test]
+    fn test_merge_items_same_id() {
+        let mut board = RetroBoard {
+            title: "Test Board".to_string(),
+            lanes: HashMap::new(),
+        };
+
+        board.add_lane("Test Lane");
+        board.add_item("Test Lane", "Item");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        let item_id = lane.items.keys().next().unwrap().clone();
+
+        // Merging an item with itself should not panic and should leave the item intact
+        board.merge_items("Test Lane", &item_id, &item_id, "body");
+
+        let lane = board.lanes.get("Test Lane").unwrap();
+        assert!(lane.items.contains_key(&item_id));
     }
 
     #[test]
