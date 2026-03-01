@@ -4,9 +4,11 @@ export type Item = {
   sort_order: number;
 };
 
+export type LaneThemeKey = "went-well" | "to-improve" | "action-items";
+
 export type Lane = {
   title: string;
-  theme: "went-well" | "to-improve" | "action-items";
+  theme: LaneThemeKey;
   items: { [k: string]: Item };
 };
 
@@ -16,6 +18,7 @@ export type Board = {
 };
 
 export type ActionAddLane = {
+  type: "AddLane";
   title: string;
 };
 
@@ -26,6 +29,7 @@ export type ActionAddItem = {
 };
 
 export type ActionRemoveItem = {
+  type: "RemoveItem";
   lane_id: string;
   id: string;
 };
@@ -50,17 +54,47 @@ export type ActionReorderItem = {
   new_position: number;
 };
 
+export type ActionEditItem = {
+  type: "EditItem";
+  lane_id: string;
+  id: string;
+  body: string;
+};
+
+export type ActionMergeItems = {
+  type: "MergeItems";
+  lane_id: string;
+  source_id: string;
+  target_id: string;
+  merged_body: string;
+};
+
 export type AllActions =
   | ActionAddItem
   | ActionAddLane
   | ActionRemoveItem
   | ActionUpvoteItem
   | ActionMoveItem
-  | ActionReorderItem;
+  | ActionReorderItem
+  | ActionEditItem
+  | ActionMergeItems;
 
 export type SendActionFunc = (action: AllActions) => void;
 
-export type WebsocketState = {
-  state: Board | undefined;
-  connected: boolean;
+/** Merge source state shared across the board */
+export type MergeSource = {
+  laneId: string;
+  itemId: string;
+  body: string;
+  vote_count: number;
+} | null;
+
+/** DnD item shape used by svelte-dnd-action */
+export type DndItem = {
+  id: string;
+  body: string;
+  vote_count: number;
+  sort_order: number;
+  isDndShadowItem?: boolean;
 };
+

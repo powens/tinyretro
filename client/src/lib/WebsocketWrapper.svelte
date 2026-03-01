@@ -1,23 +1,32 @@
 <script lang="ts">
-  // import { writable } from 'svelte/store';
-  import { setContext, onMount, onDestroy } from "svelte";
-  import type { AllActions, Board } from "../lib/BoardState.svelte";
-  import RetroBoard from "./RetroBoard.svelte";
+  import { onMount, onDestroy } from "svelte";
+  import type {
+    AllActions,
+    Board,
+    SendActionFunc,
+  } from "../lib/BoardState.svelte";
+  import type { Snippet } from "svelte";
 
-  const SOCKET_STATE = "socketState";
-  const SEND_ACTION = "sendAction";
+  let {
+    children,
+  }: {
+    children: Snippet<
+      [
+        {
+          boardState: Board | undefined;
+          sendAction: SendActionFunc;
+          socketState: string;
+        },
+      ]
+    >;
+  } = $props();
 
-  let socketState = $state("disconnected");
-  let sendAction = $state<(action: AllActions) => void>(() => {
+  let socketState = $state("connecting");
+  let sendAction = $state<SendActionFunc>(() => {
     console.error("sendAction not initialized");
   });
 
-  setContext(SOCKET_STATE, () => socketState);
-  setContext(SEND_ACTION, () => sendAction);
-  // const boardState = writable<Board|undefined>(undefined);
-
-  let boardState = $state({}) as Board;
-  // let { children } = $props();
+  let boardState: Board | undefined = $state(undefined);
 
   let socket = $state<WebSocket>();
 
@@ -29,6 +38,7 @@
       hostPort = ":3000";
     }
 
+    socketState = "connecting";
     socket = new WebSocket(`${hostProtocol}://${hostAddress}${hostPort}/ws`);
 
     socket.addEventListener("open", () => {
@@ -78,10 +88,5 @@
 </script>
 
 <div>
-  <!-- {@render children?.()} -->
-  {#if !boardState.title}
-    <p>Loading...</p>
-  {:else}
-    <RetroBoard {boardState} />
-  {/if}
+  {@render children({ boardState, sendAction, socketState })}
 </div>
