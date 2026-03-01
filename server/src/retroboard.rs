@@ -213,31 +213,31 @@ impl RetroBoard {
             return; // No need to move if it's the same lane
         }
 
+        // Validate both lanes exist before mutating anything
+        if !self.lanes.contains_key(from_lane_id) {
+            tracing::error!("Lane with ID '{}' does not exist", from_lane_id);
+            return;
+        }
+        if !self.lanes.contains_key(to_lane_id) {
+            tracing::error!("Lane with ID '{}' does not exist", to_lane_id);
+            return;
+        }
+
         // Remove the item from the source lane
-        let item = {
-            if let Some(from_lane) = self.lanes.get_mut(from_lane_id) {
-                from_lane.items.remove(item_id)
-            } else {
-                tracing::error!("Lane with ID '{}' does not exist", from_lane_id);
-                return;
-            }
-        };
+        let item = self.lanes.get_mut(from_lane_id).unwrap().items.remove(item_id);
 
         // Add the item to the destination lane if it was found
         if let Some(mut item) = item {
-            if let Some(to_lane) = self.lanes.get_mut(to_lane_id) {
-                // Assign sort_order to the end of the destination lane
-                let next_sort_order = to_lane
-                    .items
-                    .values()
-                    .map(|i| i.sort_order)
-                    .max()
-                    .map_or(0, |max| max + 1);
-                item.sort_order = next_sort_order;
-                to_lane.items.insert(item_id.to_string(), item);
-            } else {
-                tracing::error!("Lane with ID '{}' does not exist", to_lane_id);
-            }
+            let to_lane = self.lanes.get_mut(to_lane_id).unwrap();
+            // Assign sort_order to the end of the destination lane
+            let next_sort_order = to_lane
+                .items
+                .values()
+                .map(|i| i.sort_order)
+                .max()
+                .map_or(0, |max| max + 1);
+            item.sort_order = next_sort_order;
+            to_lane.items.insert(item_id.to_string(), item);
         } else {
             tracing::error!(
                 "Item with ID '{}' not found in lane '{}'",
@@ -668,11 +668,12 @@ mod tests {
         let lane1 = board.lanes.get("Lane 1").unwrap();
         let item_id = lane1.items.keys().next().unwrap().clone();
 
-        // Try to move to nonexistent lane - item should be removed from source
+        // Try to move to nonexistent lane - item should remain in source (no data loss)
         board.move_item("Lane 1", "Nonexistent Lane", &item_id);
 
         let lane1 = board.lanes.get("Lane 1").unwrap();
-        assert_eq!(lane1.items.len(), 0);
+        assert_eq!(lane1.items.len(), 1);
+        assert!(lane1.items.contains_key(&item_id));
     }
 
     #[test]

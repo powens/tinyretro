@@ -88,10 +88,10 @@ describe("WebsocketWrapper", () => {
     vi.restoreAllMocks();
   });
 
-  test("starts with disconnected state", () => {
+  test("starts with connecting state", () => {
     renderWrapper();
     expect(screen.getByTestId("socket-state")).toHaveTextContent(
-      "disconnected",
+      "connecting",
     );
   });
 

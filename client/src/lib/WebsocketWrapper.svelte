@@ -21,7 +21,7 @@
     >;
   } = $props();
 
-  let socketState = $state("disconnected");
+  let socketState = $state("connecting");
   let sendAction = $state<SendActionFunc>(() => {
     console.error("sendAction not initialized");
   });
@@ -38,6 +38,7 @@
       hostPort = ":3000";
     }
 
+    socketState = "connecting";
     socket = new WebSocket(`${hostProtocol}://${hostAddress}${hostPort}/ws`);
 
     socket.addEventListener("open", () => {

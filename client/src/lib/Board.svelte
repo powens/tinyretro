@@ -67,14 +67,41 @@
     const lane = boardState.lanes[laneId];
     if (!lane) return;
 
-    // Find the single item whose position changed and send one ReorderItem.
-    // The server's reorder_item already cascades sort_order for the whole lane.
     for (let i = 0; i < newItems.length; i++) {
       const item = newItems[i];
       if (item[SHADOW_ITEM_MARKER_PROPERTY_NAME as keyof DndItem]) continue;
 
       const existing = lane.items[item.id];
-      if (existing && existing.sort_order !== i) {
+
+      if (!existing) {
+        // Cross-lane move: item doesn't exist in the destination lane yet.
+        // Find the source lane and send a MoveItem action.
+        const fromLaneId = Object.entries(boardState.lanes).find(
+          ([, l]) => item.id in l.items,
+        )?.[0];
+
+        if (fromLaneId) {
+          sendAction({
+            type: "MoveItem",
+            from_lane_id: fromLaneId,
+            to_lane_id: laneId,
+            item_id: item.id,
+          });
+          // Server appends to the end of the destination lane.
+          // If the item was dropped at an earlier position, reorder it.
+          const destLaneSize = Object.keys(lane.items).length;
+          if (i !== destLaneSize) {
+            sendAction({
+              type: "ReorderItem",
+              lane_id: laneId,
+              item_id: item.id,
+              new_position: i,
+            });
+          }
+        }
+        break;
+      } else if (existing.sort_order !== i) {
+        // Same-lane reorder: position changed within this lane.
         sendAction({
           type: "ReorderItem",
           lane_id: laneId,
