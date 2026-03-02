@@ -66,26 +66,14 @@ struct AppState {
 const BOARD_FILE: &str = "./retroboard.json";
 
 impl AppState {
-    /// Acquire a read lock on the board, recovering from a poisoned lock.
+    /// Acquire a read lock on the board.
     fn read_board(&self) -> std::sync::RwLockReadGuard<'_, RetroBoard> {
-        match self.board.read() {
-            Ok(guard) => guard,
-            Err(poisoned) => {
-                tracing::error!("Board RwLock was poisoned — recovering");
-                poisoned.into_inner()
-            }
-        }
+        self.board.read().expect("Board RwLock poisoned")
     }
 
-    /// Acquire a write lock on the board, recovering from a poisoned lock.
+    /// Acquire a write lock on the board.
     fn write_board(&self) -> std::sync::RwLockWriteGuard<'_, RetroBoard> {
-        match self.board.write() {
-            Ok(guard) => guard,
-            Err(poisoned) => {
-                tracing::error!("Board RwLock was poisoned — recovering");
-                poisoned.into_inner()
-            }
-        }
+        self.board.write().expect("Board RwLock poisoned")
     }
 
     fn process_action(&self, action: Action) {
