@@ -235,7 +235,7 @@ impl RetroBoard {
                 .values()
                 .map(|i| i.sort_order)
                 .max()
-                .map_or(0, |max| max + 1);
+                .map_or(0, |max| max.saturating_add(1));
             item.sort_order = next_sort_order;
             to_lane.items.insert(item_id.to_string(), item);
         } else {
