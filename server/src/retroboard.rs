@@ -31,7 +31,7 @@ impl RetroLane {
             .values()
             .map(|item| item.sort_order)
             .max()
-            .map_or(0, |max| max + 1);
+            .map_or(0, |max| max.saturating_add(1));
         self.items.insert(
             id,
             RetroItem {
