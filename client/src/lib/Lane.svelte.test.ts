@@ -1,4 +1,4 @@
-import { render, screen, cleanup } from "@testing-library/svelte";
+import { render, screen } from "@testing-library/svelte";
 import { describe, test, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import LaneWrapper from "./__tests__/LaneWrapper.svelte";
