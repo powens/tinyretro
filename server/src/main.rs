@@ -45,6 +45,17 @@ enum Action {
         item_id: String,
         new_position: u64,
     },
+    EditItem {
+        lane_id: String,
+        id: String,
+        body: String,
+    },
+    MergeItems {
+        lane_id: String,
+        source_id: String,
+        target_id: String,
+        merged_body: String,
+    },
 }
 
 struct AppState {
@@ -52,32 +63,56 @@ struct AppState {
     tx: broadcast::Sender<String>,
 }
 
+const BOARD_FILE: &str = "./retroboard.json";
+
 impl AppState {
+    /// Acquire a read lock on the board, recovering from a poisoned lock.
+    fn read_board(&self) -> std::sync::RwLockReadGuard<'_, RetroBoard> {
+        match self.board.read() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                tracing::error!("Board RwLock was poisoned — recovering");
+                poisoned.into_inner()
+            }
+        }
+    }
+
+    /// Acquire a write lock on the board, recovering from a poisoned lock.
+    fn write_board(&self) -> std::sync::RwLockWriteGuard<'_, RetroBoard> {
+        match self.board.write() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                tracing::error!("Board RwLock was poisoned — recovering");
+                poisoned.into_inner()
+            }
+        }
+    }
+
     fn process_action(&self, action: Action) {
         match action {
             Action::AddLane { title } => {
                 tracing::debug!("Adding lane: {}", title);
-                let mut board = self.board.write().unwrap();
+                let mut board = self.write_board();
                 board.add_lane(&title);
-                board.save_to_file("./retroboard.json");
+                board.save_to_file(BOARD_FILE);
             }
             Action::AddItem { lane_id, body } => {
                 tracing::debug!("Adding item to lane {}: {}", lane_id, body);
-                let mut board = self.board.write().unwrap();
+                let mut board = self.write_board();
                 board.add_item(&lane_id, &body);
-                board.save_to_file("./retroboard.json");
+                board.save_to_file(BOARD_FILE);
             }
             Action::RemoveItem { lane_id, id } => {
                 tracing::debug!("Removing item from lane {}: {}", lane_id, id);
-                let mut board = self.board.write().unwrap();
+                let mut board = self.write_board();
                 board.remove_item(&lane_id, &id);
-                board.save_to_file("./retroboard.json");
+                board.save_to_file(BOARD_FILE);
             }
             Action::UpvoteItem { lane_id, id } => {
                 tracing::debug!("Upvoting item in lane {}: {}", lane_id, id);
-                let mut board = self.board.write().unwrap();
+                let mut board = self.write_board();
                 board.upvote_item(&lane_id, &id);
-                board.save_to_file("./retroboard.json");
+                board.save_to_file(BOARD_FILE);
             }
             Action::MoveItem {
                 from_lane_id,
@@ -90,9 +125,9 @@ impl AppState {
                     from_lane_id,
                     to_lane_id
                 );
-                let mut board = self.board.write().unwrap();
+                let mut board = self.write_board();
                 board.move_item(&from_lane_id, &to_lane_id, &item_id);
-                board.save_to_file("./retroboard.json");
+                board.save_to_file(BOARD_FILE);
             }
             Action::ReorderItem {
                 lane_id,
@@ -105,9 +140,31 @@ impl AppState {
                     lane_id,
                     new_position
                 );
-                let mut board = self.board.write().unwrap();
+                let mut board = self.write_board();
                 board.reorder_item(&lane_id, &item_id, new_position);
-                board.save_to_file("./retroboard.json");
+                board.save_to_file(BOARD_FILE);
+            }
+            Action::EditItem { lane_id, id, body } => {
+                tracing::debug!("Editing item {} in lane {}: {}", id, lane_id, body);
+                let mut board = self.write_board();
+                board.edit_item(&lane_id, &id, &body);
+                board.save_to_file(BOARD_FILE);
+            }
+            Action::MergeItems {
+                lane_id,
+                source_id,
+                target_id,
+                merged_body,
+            } => {
+                tracing::debug!(
+                    "Merging item {} into {} in lane {}",
+                    source_id,
+                    target_id,
+                    lane_id
+                );
+                let mut board = self.write_board();
+                board.merge_items(&lane_id, &source_id, &target_id, &merged_body);
+                board.save_to_file(BOARD_FILE);
             }
         }
     }
@@ -127,7 +184,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
 
     tracing::debug!("New client connected");
     let board = {
-        let board = state.board.read().unwrap();
+        let board = state.read_board();
         serde_json::to_string(&*board).unwrap()
     };
     sender.send(Message::text(board)).await.unwrap();
@@ -159,7 +216,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
 
             let board = {
                 state.process_action(action);
-                let board = state.board.read().unwrap();
+                let board = state.read_board();
                 serde_json::to_string(&*board).unwrap()
             };
 
@@ -287,6 +344,47 @@ mod tests {
             }
             _ => panic!("Wrong action type"),
         }
+
+        // Test EditItem action
+        let edit_item = Action::EditItem {
+            lane_id: "lane1".to_string(),
+            id: "item1".to_string(),
+            body: "Updated body".to_string(),
+        };
+        let json = serde_json::to_string(&edit_item).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::EditItem { lane_id, id, body } => {
+                assert_eq!(lane_id, "lane1");
+                assert_eq!(id, "item1");
+                assert_eq!(body, "Updated body");
+            }
+            _ => panic!("Wrong action type"),
+        }
+
+        // Test MergeItems action
+        let merge_items = Action::MergeItems {
+            lane_id: "lane1".to_string(),
+            source_id: "item1".to_string(),
+            target_id: "item2".to_string(),
+            merged_body: "Merged text".to_string(),
+        };
+        let json = serde_json::to_string(&merge_items).unwrap();
+        let parsed: Action = serde_json::from_str(&json).unwrap();
+        match parsed {
+            Action::MergeItems {
+                lane_id,
+                source_id,
+                target_id,
+                merged_body,
+            } => {
+                assert_eq!(lane_id, "lane1");
+                assert_eq!(source_id, "item1");
+                assert_eq!(target_id, "item2");
+                assert_eq!(merged_body, "Merged text");
+            }
+            _ => panic!("Wrong action type"),
+        }
     }
 
     #[test]
@@ -394,6 +492,39 @@ mod tests {
         let lane = board.lanes.get("to-improve").unwrap();
         let item = lane.items.get("1").unwrap();
         assert_eq!(item.sort_order, 0);
+
+        drop(board);
+
+        // Test EditItem action
+        let action = Action::EditItem {
+            lane_id: "to-improve".to_string(),
+            id: "3".to_string(),
+            body: "Edited body text".to_string(),
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("to-improve").unwrap();
+        let item = lane.items.get("3").unwrap();
+        assert_eq!(item.body, "Edited body text");
+
+        drop(board);
+
+        // Test MergeItems action
+        let action = Action::MergeItems {
+            lane_id: "to-improve".to_string(),
+            source_id: "1".to_string(),
+            target_id: "3".to_string(),
+            merged_body: "Combined text".to_string(),
+        };
+        app_state.process_action(action);
+
+        let board = app_state.board.read().unwrap();
+        let lane = board.lanes.get("to-improve").unwrap();
+        assert!(!lane.items.contains_key("1")); // source removed
+        let target = lane.items.get("3").unwrap();
+        assert_eq!(target.body, "Combined text");
+        assert_eq!(target.vote_count, 1); // inherited from source (upvoted earlier)
     }
 }
 
@@ -408,7 +539,7 @@ async fn main() {
         .init();
 
     // Setup app state
-    let board = RetroBoard::load_from_file("./retroboard.json");
+    let board = RetroBoard::load_from_file(BOARD_FILE);
     let (tx, _rx) = broadcast::channel(100);
     let app_state = Arc::new(AppState {
         board: RwLock::new(board),

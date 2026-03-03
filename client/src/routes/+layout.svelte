@@ -1,6 +1,8 @@
 <script>
+  import "../v2.css";
   let { children } = $props();
-  import "../app.css";
 </script>
 
-{@render children()}
+<div class="h-screen" data-theme="cerberus">
+  {@render children()}
+</div>
