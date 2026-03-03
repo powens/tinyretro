@@ -224,7 +224,12 @@ impl RetroBoard {
         }
 
         // Remove the item from the source lane
-        let item = self.lanes.get_mut(from_lane_id).unwrap().items.remove(item_id);
+        let item = self
+            .lanes
+            .get_mut(from_lane_id)
+            .unwrap()
+            .items
+            .remove(item_id);
 
         // Add the item to the destination lane if it was found
         if let Some(mut item) = item {

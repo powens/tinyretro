@@ -31,6 +31,7 @@
 
   let isAdding = $state(false);
   let newBody = $state("");
+  let textareaEl: HTMLTextAreaElement | undefined = $state();
 
   const flipDurationMs = 200;
 
@@ -55,6 +56,12 @@
       newBody = "";
     }
   }
+
+  $effect(() => {
+    if (isAdding && textareaEl) {
+      textareaEl.focus();
+    }
+  });
 
   function handleConsider(e: CustomEvent<{ items: DndItem[] }>) {
     onDndConsider(e.detail.items);
@@ -138,6 +145,7 @@
           placeholder="What's on your mind?"
           rows="3"
           bind:value={newBody}
+          bind:this={textareaEl}
           onkeydown={handleKeydown}
         ></textarea>
         <div class="flex gap-2 justify-end">

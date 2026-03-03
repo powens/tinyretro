@@ -9,7 +9,7 @@
     <div class="min-h-screen bg-surface-50 dark:bg-surface-900">
       <!-- Header -->
       <AppBar>
-        <AppBar.Toolbar>
+        <AppBar.Toolbar class="grid-cols-[auto_1fr_auto]">
           <AppBar.Lead>
             <span class="text-xl font-bold tracking-tight">tinyretro</span>
           </AppBar.Lead>

@@ -34,10 +34,13 @@
     const hostProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     const hostAddress = window.location.hostname;
     let hostPort = window.location.port ? `:${window.location.port}` : "";
-    if (import.meta.env.DEBUG) {
+    if (import.meta.env.DEV) {
       hostPort = ":3000";
     }
-
+    console.debug(
+      `Connecting to WebSocket at ${hostProtocol}://${hostAddress}${hostPort}/ws`,
+    );
+    console.debug(import.meta.env);
     socketState = "connecting";
     socket = new WebSocket(`${hostProtocol}://${hostAddress}${hostPort}/ws`);
 
