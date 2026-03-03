@@ -61,17 +61,8 @@ class MockWebSocket {
   }
 }
 
-// Warm up + render helper
 function renderWrapper() {
   cleanup();
-  for (let i = 0; i < 3; i++) {
-    try {
-      render(WebsocketWrapperTest);
-    } catch {
-      /* Svelte 5 jsdom warm-up */
-    }
-    cleanup();
-  }
   return render(WebsocketWrapperTest);
 }
 

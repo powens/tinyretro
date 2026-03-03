@@ -10,7 +10,7 @@ vi.mock("svelte-dnd-action", () => ({
   SHADOW_ITEM_MARKER_PROPERTY_NAME: "isDndShadowItem",
 }));
 
-// Mock Item to avoid Svelte 5 jsdom issues
+// Mock Item to keep Board tests focused
 vi.mock("$lib/Item.svelte", async () => {
   const MockItem = (await import("./__mocks__/Item.svelte")).default;
   return { default: MockItem };
@@ -30,21 +30,12 @@ vi.mock("@lucide/svelte", async () => {
   };
 });
 
-// Warm up + render helper (Svelte 5 jsdom first-render bug)
 function renderBoard(props: {
   boardState: BoardType;
   sendAction?: (...args: unknown[]) => void;
 }) {
   cleanup();
   const merged = { sendAction: () => {}, ...props };
-  for (let i = 0; i < 3; i++) {
-    try {
-      render(Board, merged);
-    } catch {
-      /* Svelte 5 jsdom warm-up */
-    }
-    cleanup();
-  }
   return render(Board, merged);
 }
 

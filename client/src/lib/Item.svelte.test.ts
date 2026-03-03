@@ -3,8 +3,7 @@ import { describe, test, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import ItemWrapper from "./__tests__/ItemWrapper.svelte";
 
-// Mock @lucide/svelte icons — Icon.svelte uses {...props} spread which
-// triggers a Svelte 5 first-render bug in jsdom.
+// Mock @lucide/svelte icons to keep tests focused.
 vi.mock("@lucide/svelte", async () => {
   const MockIcon = (await import("./__mocks__/MockIcon.svelte")).default;
   return {
@@ -18,8 +17,6 @@ vi.mock("@lucide/svelte", async () => {
   };
 });
 
-// Helper: warm up + render. Svelte 5's template hydration in jsdom needs
-// several render/cleanup cycles before text-node references stabilise.
 function renderItem(props: Record<string, unknown> = {}) {
   cleanup();
   const defaults = {
@@ -29,14 +26,6 @@ function renderItem(props: Record<string, unknown> = {}) {
     laneId: "lane-1",
   };
   const merged = { ...defaults, ...props };
-  for (let i = 0; i < 5; i++) {
-    try {
-      render(ItemWrapper, merged);
-    } catch {
-      /* Svelte 5 jsdom warm-up */
-    }
-    cleanup();
-  }
   return render(ItemWrapper, merged);
 }
 
@@ -127,7 +116,6 @@ describe("Item", () => {
     await user.dblClick(screen.getByText("No change"));
     const textarea = screen.getByRole("textbox");
     expect(textarea).toBeInTheDocument();
-    // Focus textarea explicitly (requestAnimationFrame doesn't fire in jsdom)
     textarea.focus();
     await user.keyboard("{Escape}");
     // Should return to view mode showing original text
@@ -290,7 +278,6 @@ describe("Item", () => {
       },
     });
     await user.click(screen.getByText("Merge into this").closest("button")!);
-    // Focus merge textarea explicitly (requestAnimationFrame doesn't fire in jsdom)
     const textarea = screen.getByRole("textbox");
     textarea.focus();
     // Confirm via Ctrl+Enter

@@ -1,17 +1,17 @@
 import { render, screen, cleanup } from "@testing-library/svelte";
-import { describe, test, expect, vi, beforeAll } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import LaneWrapper from "./__tests__/LaneWrapper.svelte";
 import type { DndItem, Lane } from "$lib/BoardState.svelte";
 
 // Mock svelte-dnd-action — use:dndzone relies on pointer events / DOM
-// measurements not available in jsdom.
+// measurements not available in unit tests.
 vi.mock("svelte-dnd-action", () => ({
   dndzone: () => ({ destroy() {} }),
   SHADOW_PLACEHOLDER_ITEM_ID: "shadow-placeholder",
 }));
 
-// Mock Item to keep Lane tests focused and avoid Svelte 5 jsdom issues.
+// Mock Item to keep Lane tests focused.
 vi.mock("$lib/Item.svelte", async () => {
   const MockItem = (await import("./__mocks__/Item.svelte")).default;
   return { default: MockItem };
@@ -29,16 +29,6 @@ vi.mock("@lucide/svelte", async () => {
     Trash2: MockIcon,
     Merge: MockIcon,
   };
-});
-
-// Warm up Svelte 5 component rendering in jsdom
-beforeAll(() => {
-  try {
-    render(LaneWrapper);
-  } catch {
-    /* Svelte 5 jsdom warm-up */
-  }
-  cleanup();
 });
 
 const defaultLane: Lane = {

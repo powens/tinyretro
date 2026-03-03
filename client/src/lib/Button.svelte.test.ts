@@ -1,17 +1,7 @@
 import { render, screen, cleanup } from "@testing-library/svelte";
-import { describe, test, expect, vi, beforeAll } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import ButtonWrapper from "./__tests__/ButtonWrapper.svelte";
-
-// Warm up svelte component rendering in jsdom
-beforeAll(() => {
-  try {
-    render(ButtonWrapper);
-  } catch {
-    /* ignore first-render init error */
-  }
-  cleanup();
-});
 
 describe("Button", () => {
   test("renders a <button> element", () => {
