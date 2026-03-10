@@ -169,7 +169,7 @@
         <p class="text-xs opacity-50 text-right">Ctrl+Enter to submit</p>
       </div>
     {:else}
-      <Button variant="outlined" fullWidth onclick={() => (isAdding = true)}>
+      <Button variant="outlined" fullWidth={true} onclick={() => (isAdding = true)}>
         + Add item
       </Button>
     {/if}
