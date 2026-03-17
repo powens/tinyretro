@@ -9,6 +9,15 @@ updates:
     directory: "/client" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      client-patch-updates:
+        applies-to: version-updates
+        update-types:
+          - "patch"
+      client-minor-updates:
+        applies-to: version-updates
+        update-types:
+          - "minor"
   - package-ecosystem: "cargo"
     directory: "/server"
     schedule:
