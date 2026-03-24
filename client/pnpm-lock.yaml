@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@lucide/svelte':
-        specifier: ^0.577.0
-        version: 0.577.0(svelte@5.55.0)
+        specifier: ^1.6.0
+        version: 1.6.0(svelte@5.55.0)
       '@skeletonlabs/skeleton':
         specifier: ^4.13.0
         version: 4.13.0(tailwindcss@4.2.2)
@@ -414,8 +414,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lucide/svelte@0.577.0':
-    resolution: {integrity: sha512-0P6mkySd2MapIEgq08tADPmcN4DHndC/02PWwaLkOerXlx5Sv9aT4BxyXLIY+eccr0g/nEyCYiJesqS61YdBZQ==}
+  '@lucide/svelte@1.6.0':
+    resolution: {integrity: sha512-5pH6MHQTVy/IwO8YNN2Usj47p9D/dM/srAAO9Hr2r33/yEoh6y7R2N7eCE4WtiybXOQJO14KrtVK6PGUhVHJJw==}
     peerDependencies:
       svelte: ^5
 
@@ -2257,7 +2257,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@lucide/svelte@0.577.0(svelte@5.55.0)':
+  '@lucide/svelte@1.6.0(svelte@5.55.0)':
     dependencies:
       svelte: 5.55.0
 

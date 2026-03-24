@@ -41,7 +41,7 @@
     "vitest": "^4.1.1"
   },
   "dependencies": {
-    "@lucide/svelte": "^0.577.0",
+    "@lucide/svelte": "^1.6.0",
     "@skeletonlabs/skeleton": "^4.13.0",
     "@skeletonlabs/skeleton-svelte": "^4.13.0",
     "@tailwindcss/postcss": "^4.2.2",
