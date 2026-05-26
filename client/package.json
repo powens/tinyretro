@@ -22,14 +22,14 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.3.1",
     "@testing-library/user-event": "^14.6.1",
-    "@vitest/coverage-v8": "^4.1.6",
+    "@vitest/coverage-v8": "^4.1.7",
     "autoprefixer": "^10.5.0",
     "clsx": "^2.1.1",
     "eslint": "^10.3.0",
     "eslint-plugin-svelte": "^3.17.1",
     "globals": "^17.6.0",
     "happy-dom": "^20.9.0",
-    "svelte": "^5.55.7",
+    "svelte": "^5.55.9",
     "svelte-check": "^4.4.8",
     "svelte-eslint-parser": "^1.6.1",
     "tailwind-merge": "^3.6.0",
@@ -38,7 +38,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
     "vite": "^7.3.2",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.7"
   },
   "dependencies": {
     "@lucide/svelte": "^1.14.0",
