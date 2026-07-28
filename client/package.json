@@ -23,14 +23,14 @@
     "@testing-library/svelte": "^5.4.2",
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^4.1.10",
-    "autoprefixer": "^10.5.2",
+    "autoprefixer": "^10.5.4",
     "clsx": "^2.1.1",
     "eslint": "^10.7.0",
     "eslint-plugin-svelte": "^3.22.0",
     "globals": "^17.7.0",
-    "happy-dom": "^20.11.0",
-    "svelte": "^5.56.4",
-    "svelte-check": "^4.7.3",
+    "happy-dom": "^20.11.1",
+    "svelte": "^5.56.8",
+    "svelte-check": "^4.7.4",
     "svelte-eslint-parser": "^1.8.0",
     "tailwind-merge": "^3.6.0",
     "tailwind-variants": "^3.2.2",
@@ -44,9 +44,9 @@
     "@lucide/svelte": "^1.25.0",
     "@skeletonlabs/skeleton": "^4.15.2",
     "@skeletonlabs/skeleton-svelte": "^4.15.2",
-    "@tailwindcss/postcss": "^4.3.2",
-    "@tailwindcss/vite": "^4.3.2",
-    "svelte-dnd-action": "^0.9.70",
-    "tailwindcss": "^4.3.2"
+    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "svelte-dnd-action": "^0.9.74",
+    "tailwindcss": "^4.3.3"
   }
 }
