@@ -43,7 +43,7 @@
   "dependencies": {
     "@lucide/svelte": "^1.27.0",
     "@skeletonlabs/skeleton": "^4.15.2",
-    "@skeletonlabs/skeleton-svelte": "^4.15.2",
+    "@skeletonlabs/skeleton-svelte": "^5.0.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
     "svelte-dnd-action": "^0.9.74",
