@@ -1,5 +1,8 @@
 <script lang="ts">
+  import type { ComponentProps } from "svelte";
   import Button from "../Button.svelte";
+
+  type ButtonProps = ComponentProps<typeof Button>;
 
   let {
     text = "Click me",
@@ -12,8 +15,8 @@
     class: className = undefined,
   }: {
     text?: string;
-    variant?: string;
-    size?: string;
+    variant?: ButtonProps["variant"];
+    size?: ButtonProps["size"];
     fullWidth?: boolean;
     disabled?: boolean;
     onclick?: () => void;

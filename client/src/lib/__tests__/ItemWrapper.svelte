@@ -40,8 +40,12 @@
     get source() {
       return mergeSource;
     },
-    start: onMergeStart,
-    cancel: onMergeCancel,
+    get start() {
+      return onMergeStart;
+    },
+    get cancel() {
+      return onMergeCancel;
+    },
   });
 </script>
 
