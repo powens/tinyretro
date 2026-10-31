@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { svelteTesting } from "@testing-library/svelte/vite";
-import { svelteKitConfig } from "./vite.config.js";
+import { svelteKitConfig } from "./vite.config.ts";
 
 export default defineConfig({
   plugins: [sveltekit(svelteKitConfig), svelteTesting()],

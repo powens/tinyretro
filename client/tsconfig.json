@@ -13,6 +13,6 @@
 	},
 	// TypeScript does not merge includes/excludes from the extended config,
 	// so they are listed here (matching the scope SvelteKit 2 type-checked)
-	"include": ["src", "test", "vite.config.js"],
+	"include": ["src", "test", "vite.config.ts"],
 	"exclude": ["src/service-worker"]
 }
