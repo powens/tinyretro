@@ -1,5 +1,5 @@
 import { getContext, setContext } from "svelte";
-import type { MergeSource } from "$lib/BoardState.svelte";
+import type { MergeSource } from "#lib/BoardState.svelte.ts";
 
 const MERGE_CTX_KEY = Symbol("merge-context");
 

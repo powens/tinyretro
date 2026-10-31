@@ -4,7 +4,7 @@
     DndItem,
     MergeSource,
     SendActionFunc,
-  } from "$lib/BoardState.svelte";
+  } from "#lib/BoardState.svelte.ts";
   import Lane from "./Lane.svelte";
   import { setMergeContext } from "./merge-context";
   import { SHADOW_ITEM_MARKER_PROPERTY_NAME } from "svelte-dnd-action";

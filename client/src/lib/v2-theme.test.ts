@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { getLaneTheme, laneThemeMap } from "./v2-theme";
-import type { LaneThemeKey } from "$lib/BoardState.svelte";
+import type { LaneThemeKey } from "#lib/BoardState.svelte.ts";
 
 describe("v2-theme", () => {
   test("returns went-well theme", () => {

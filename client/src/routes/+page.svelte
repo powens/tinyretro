@@ -1,6 +1,6 @@
 <script lang="ts">
-  import WebsocketWrapper from "$lib/WebsocketWrapper.svelte";
-  import Board from "$lib/Board.svelte";
+  import WebsocketWrapper from "#lib/WebsocketWrapper.svelte";
+  import Board from "#lib/Board.svelte";
   import { AppBar } from "@skeletonlabs/skeleton-svelte";
 </script>
 

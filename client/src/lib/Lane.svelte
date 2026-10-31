@@ -4,7 +4,7 @@
     DndItem,
     ActionAddItem,
     SendActionFunc,
-  } from "$lib/BoardState.svelte";
+  } from "#lib/BoardState.svelte.ts";
   import { getLaneTheme } from "./v2-theme";
   import Item from "./Item.svelte";
   import Button from "./Button.svelte";

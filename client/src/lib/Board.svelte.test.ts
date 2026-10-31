@@ -1,7 +1,7 @@
 import { render, screen, cleanup } from "@testing-library/svelte";
 import { describe, test, expect, vi } from "vitest";
 import Board from "./Board.svelte";
-import type { Board as BoardType } from "$lib/BoardState.svelte";
+import type { Board as BoardType } from "#lib/BoardState.svelte.ts";
 
 // Mock svelte-dnd-action
 vi.mock("svelte-dnd-action", () => ({
@@ -11,7 +11,7 @@ vi.mock("svelte-dnd-action", () => ({
 }));
 
 // Mock Item to keep Board tests focused
-vi.mock("$lib/Item.svelte", async () => {
+vi.mock("#lib/Item.svelte", async () => {
   const MockItem = (await import("./__mocks__/Item.svelte")).default;
   return { default: MockItem };
 });

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Lane from "../Lane.svelte";
   import { setMergeContext, type MergeContext } from "../merge-context";
-  import type { Lane as LaneType, DndItem } from "$lib/BoardState.svelte";
+  import type { Lane as LaneType, DndItem } from "#lib/BoardState.svelte.ts";
 
   let {
     laneId = "lane-1",
