@@ -5,7 +5,7 @@
     ActionRemoveItem,
     ActionMergeItems,
     SendActionFunc,
-  } from "$lib/BoardState.svelte";
+  } from "#lib/BoardState.svelte.ts";
   import { getMergeContext } from "./merge-context";
   import { onDestroy } from "svelte";
   import {

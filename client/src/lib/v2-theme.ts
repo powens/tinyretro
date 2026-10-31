@@ -1,4 +1,4 @@
-import type { LaneThemeKey } from "$lib/BoardState.svelte";
+import type { LaneThemeKey } from "#lib/BoardState.svelte.ts";
 
 export type LaneTheme = {
   /** Header background tint */
