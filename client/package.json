@@ -30,8 +30,8 @@
     "autoprefixer": "^10.6.2",
     "clsx": "^2.1.1",
     "eslint": "^10.14.0",
-    "eslint-plugin-svelte": "^3.23.1",
-    "globals": "^17.13.0",
+    "eslint-plugin-svelte": "^3.24.1",
+    "globals": "^17.14.0",
     "happy-dom": "^21.0.4",
     "svelte": "^5.57.3",
     "svelte-check": "^4.7.7",
@@ -45,7 +45,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.66.0",
+    "@lucide/svelte": "^1.70.0",
     "@skeletonlabs/skeleton": "^5.0.1",
     "@skeletonlabs/skeleton-svelte": "^5.0.1",
     "@tailwindcss/postcss": "^4.3.3",
